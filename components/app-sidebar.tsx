@@ -86,14 +86,7 @@ const adminViewItems = [
       />
     ),
   },
-  {
-    title: "Content Management",
-    url: "/admin/content-management",
-    icon: (
-      <LayoutDashboardIcon
-      />
-    ),
-  },
+
   {
     title: "Comments/ Moderation",
     url: "/admin/comments-moderation",
@@ -217,7 +210,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navMain = userRole === "author" ? authorViewItems : userRole === "admin" ? adminViewItems : SuperAdminViewItems
   const pathname = usePathname()
   return (
-    <Sidebar collapsible="icon" {...props} className="bg-linear-to-b from-violet-700 to-purple-600! text-white">
+    <Sidebar collapsible="icon" {...props} className={` text-white ${userRole === "admin" ? " bg-linear-to-b from-purple-700 to-pink-700!" : userRole === "super-admin" ? "bg-linear-to-b bg-blue-700 to-blue-900!" : "bg-violet-700 to-purple-600"}`}>
       <SidebarHeader>
         <TeamSwitcher />
       </SidebarHeader>

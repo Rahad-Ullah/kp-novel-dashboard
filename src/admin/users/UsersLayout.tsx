@@ -31,7 +31,7 @@ function UsersLayout() {
   ];
   return (
     <div className="space-y-4">
-      <SmallPageInfo title="Users" description="Manage your users" />
+      <SmallPageInfo title="User Management" description="View and manage platform users" />
       <FilterSearch search={search} selects={selects} />
       <UsersTable />
     </div>

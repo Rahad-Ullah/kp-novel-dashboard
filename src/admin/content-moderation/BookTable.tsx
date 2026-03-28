@@ -1,5 +1,10 @@
-import React from "react";
-import { Eye, Ban, CheckCircle2 } from "lucide-react";
+"use client";
+
+import React, { useState } from "react";
+import { Eye, Ban, CheckCircle2, Trash2 } from "lucide-react";
+import BookInfoModal, {
+  bookInfoFromModerationRow,
+} from "./BookInfoModal";
 import PageLimit from "@/components/common/pagelimit/PageLimit";
 import {
   Table,
@@ -21,7 +26,7 @@ type ModerationRow = {
   status: "Pending" | "Approved" | "Rejected";
 };
 
-const books: ModerationRow[] = [
+const initialBooks: ModerationRow[] = [
   { id: "1", title: "The Immortal’s Path", description: "An epic tale of magic and destiny...", author: "Chen Wei", genre: "Fantasy", submitted: "1 day ago", status: "Pending" },
   { id: "2", title: "The Immortal’s Path", description: "An epic tale of magic and destiny...", author: "Chen Wei", genre: "Fantasy", submitted: "1 day ago", status: "Pending" },
   { id: "3", title: "The Immortal’s Path", description: "An epic tale of magic and destiny...", author: "Chen Wei", genre: "Fantasy", submitted: "1 day ago", status: "Pending" },
@@ -33,6 +38,14 @@ const books: ModerationRow[] = [
 ];
 
 function BookTable() {
+  const [rows, setRows] = useState<ModerationRow[]>(() => [...initialBooks]);
+  const [selected, setSelected] = useState<ModerationRow | null>(null);
+
+  function deleteRow(id: string) {
+    setRows((prev) => prev.filter((r) => r.id !== id));
+    setSelected((s) => (s?.id === id ? null : s));
+  }
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
       <Table className="w-full">
@@ -48,7 +61,7 @@ function BookTable() {
         </TableHeader>
 
         <TableBody>
-          {books.map((book) => (
+          {rows.map((book) => (
             <TableRow key={book.id} className="border-b border-gray-100 hover:bg-transparent">
               <TableCell className="pl-6 py-4">
                 <p className="text-[24px] leading-tight font-medium text-gray-800">{book.title}</p>
@@ -76,14 +89,35 @@ function BookTable() {
               </TableCell>
               <TableCell className="pr-6">
                 <div className="flex items-center justify-end gap-4">
-                  <button className="text-gray-400 transition-colors hover:text-gray-600" aria-label="View book">
+                  <button
+                    type="button"
+                    className="text-gray-400 transition-colors hover:text-gray-600"
+                    aria-label="View book"
+                    onClick={() => setSelected(book)}
+                  >
                     <Eye className="size-4" />
                   </button>
-                  <button className="text-emerald-600 transition-colors hover:text-emerald-700" aria-label="Approve book">
+                  <button
+                    type="button"
+                    className="text-emerald-600 transition-colors hover:text-emerald-700"
+                    aria-label="Approve book"
+                  >
                     <CheckCircle2 className="size-4" />
                   </button>
-                  <button className="text-red-400 transition-colors hover:text-red-500" aria-label="Reject book">
+                  <button
+                    type="button"
+                    className="text-red-400 transition-colors hover:text-red-500"
+                    aria-label="Reject book"
+                  >
                     <Ban className="size-4" />
+                  </button>
+                  <button
+                    type="button"
+                    className="flex size-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-500 transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-600"
+                    aria-label="Delete book"
+                    onClick={() => deleteRow(book.id)}
+                  >
+                    <Trash2 className="size-4" strokeWidth={1.75} />
                   </button>
                 </div>
               </TableCell>
@@ -96,14 +130,22 @@ function BookTable() {
             <TableCell colSpan={6} className="px-6 py-4">
               <PageLimit
                 pagination={{ page: 1, pageSize: 12, totalCount: 120 }}
-                onPaginationChange={() => {}}
-                itemLabel="users"
+                onPaginationChange={() => { }}
+                itemLabel="books"
                 mode="summary"
               />
             </TableCell>
           </TableRow>
         </TableFooter>
       </Table>
+
+      <BookInfoModal
+        open={selected !== null}
+        onOpenChange={(next) => {
+          if (!next) setSelected(null);
+        }}
+        book={selected ? bookInfoFromModerationRow(selected) : null}
+      />
     </div>
   );
 }

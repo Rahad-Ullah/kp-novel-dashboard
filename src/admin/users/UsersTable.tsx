@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Eye, Ban, CheckCircle2 } from "lucide-react";
 import PageLimit from "@/components/common/pagelimit/PageLimit";
 import {
@@ -33,17 +33,21 @@ const users: UserRow[] = [
 ];
 
 function UsersTable() {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const [totalCount, setTotalCount] = useState(120);
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
       <Table className="w-full">
         <TableHeader>
           <TableRow className="border-b border-gray-200 hover:bg-transparent">
-            <TableHead className="pl-6 text-[22px] font-semibold text-gray-700">User</TableHead>
-            <TableHead className="text-[22px] font-semibold text-gray-700">Role</TableHead>
-            <TableHead className="text-[22px] font-semibold text-gray-700">Books</TableHead>
-            <TableHead className="text-[22px] font-semibold text-gray-700">Joined</TableHead>
-            <TableHead className="text-[22px] font-semibold text-gray-700">Status</TableHead>
-            <TableHead className="text-[22px] font-semibold text-gray-700 text-right pr-6">Action</TableHead>
+            <TableHead className="pl-6 font-semibold text-base text-gray-700">User</TableHead>
+            <TableHead className="font-semibold text-base text-gray-700">Role</TableHead>
+            <TableHead className="font-semibold text-base text-gray-700">Books</TableHead>
+            <TableHead className="font-semibold text-base text-gray-700">Joined</TableHead>
+            <TableHead className="font-semibold text-base text-gray-700">Status</TableHead>
+            <TableHead className="font-semibold text-base text-gray-700 text-right pr-6">Action</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -92,8 +96,12 @@ function UsersTable() {
           <TableRow className="border-0 hover:bg-transparent">
             <TableCell colSpan={6} className="px-6 py-4">
               <PageLimit
-                pagination={{ page: 1, pageSize: 12, totalCount: 120 }}
-                onPaginationChange={() => {}}
+                pagination={{ page, pageSize, totalCount }}
+                onPaginationChange={(pagination) => {
+                  setPage(pagination.page);
+                  setPageSize(pagination.pageSize);
+                  setTotalCount(pagination.totalCount);
+                }}
                 itemLabel="users"
                 mode="summary"
               />
