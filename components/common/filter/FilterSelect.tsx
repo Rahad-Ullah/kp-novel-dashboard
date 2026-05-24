@@ -41,7 +41,7 @@ function FilterSelect({
       <SelectTrigger
         className={cn(
           "h-10! rounded-lg border border-border bg-gray-100 text-zinc-600 cursor-pointer",
-          "focus:ring-border",
+          "focus:ring-border capitalize",
           widthClasses[width],
           className,
         )}
@@ -50,7 +50,7 @@ function FilterSelect({
       </SelectTrigger>
       <SelectContent>
         {options.map((opt) => (
-          <SelectItem key={opt} value={opt}>
+          <SelectItem key={opt} value={opt} className="capitalize">
             {opt}
           </SelectItem>
         ))}

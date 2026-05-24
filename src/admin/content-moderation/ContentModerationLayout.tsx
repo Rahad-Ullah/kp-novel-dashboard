@@ -5,23 +5,35 @@ import FilterSearch from "@/components/common/filter/FIlterSearch";
 import BookTable from "./BookTable";
 import ChaptersTable from "./ChaptersTable";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useUpdateSearchParams } from "@/hooks/useUpdateSearchParams";
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 
-function ContentModerationLayout() {
+function ContentModerationLayout({ data, meta }: { data: any; meta: any }) {
+  const updateSearchParams = useUpdateSearchParams();
+  const searchParams = useSearchParams();
+  const [filter, setFilter] = useState({
+    searchTerm: searchParams.get("searchTerm") || "",
+    status: searchParams.get("status") || "",
+  });
+
   const search = {
     placeholder: "Search",
-    value: "",
+    value: filter.searchTerm,
     onChange: (value: string) => {
-      console.log(value);
+      setFilter((prev) => ({ ...prev, searchTerm: value }));
+      updateSearchParams({ searchTerm: value });
     },
   };
   const selects = [
     {
-      placeholder: "Select",
-      options: ["Option 1", "Option 2", "Option 3"],
-      value: "",
+      placeholder: "Status",
+      options: ["approved", "rejected", "pending"],
+      value: filter.status,
       onValueChange: (value: string) => {
-        console.log(value);
+        setFilter((prev) => ({ ...prev, status: value }));
+        updateSearchParams({ status: value });
       },
     },
   ];
@@ -38,17 +50,33 @@ function ContentModerationLayout() {
         </div> */}
       </div>
 
-      <FilterSearch search={search} selects={selects} />
-      <Tabs defaultValue="books">
+      {/* <FilterSearch search={search} selects={selects} /> */}
+      <Tabs
+        defaultValue="book"
+        value={searchParams.get("type") || "book"}
+        onValueChange={(value) => {
+          updateSearchParams({ type: value });
+        }}
+      >
         <TabsList>
-          <TabsTrigger value="books" className="text-gray-700 hover:text-gray-800 data-[state=active]:bg-violet-500 data-[state=active]:text-white">Books</TabsTrigger>
-          <TabsTrigger value="chapters" className="text-gray-700 hover:text-gray-800 data-[state=active]:bg-violet-500 data-[state=active]:text-white">Chapters</TabsTrigger>
+          <TabsTrigger
+            value="book"
+            className="text-gray-700 hover:text-gray-800 data-[state=active]:bg-violet-500 data-[state=active]:text-white"
+          >
+            Books
+          </TabsTrigger>
+          <TabsTrigger
+            value="chapter"
+            className="text-gray-700 hover:text-gray-800 data-[state=active]:bg-violet-500 data-[state=active]:text-white"
+          >
+            Chapters
+          </TabsTrigger>
         </TabsList>
-        <TabsContent value="books">
-          <BookTable />
+        <TabsContent value="book">
+          <BookTable data={data} meta={meta} />
         </TabsContent>
-        <TabsContent value="chapters">
-          <ChaptersTable />
+        <TabsContent value="chapter">
+          <ChaptersTable data={data} meta={meta} />
         </TabsContent>
       </Tabs>
     </div>

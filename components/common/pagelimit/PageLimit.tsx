@@ -73,11 +73,11 @@ export default function PageLimit({
 
     if (mode === "summary") {
         return (
-            <div className={cn("w-full", className)}>
-                <p className="text-sm text-gray-500">
-                    Showing {end} of {totalCount.toLocaleString()} {itemLabel}
-                </p>
-            </div>
+          <div className={cn("w-full", className)}>
+            <p className="text-sm text-gray-500">
+              Showing {end} of {totalCount?.toLocaleString()} {itemLabel}
+            </p>
+          </div>
         );
     }
 

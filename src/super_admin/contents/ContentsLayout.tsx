@@ -1,9 +1,9 @@
 import ContentModerationLayout from '@/src/admin/content-moderation/ContentModerationLayout'
 
-function ContentsLayout() {
+function ContentsLayout({ data, meta }: { data: any, meta: any }) {
     return (
         <div>
-            <ContentModerationLayout />
+            <ContentModerationLayout data={data} meta={meta} />
         </div>
     );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, Ban, CheckCircle2, Trash2 } from "lucide-react";
+import { Eye, X, Check } from "lucide-react";
 import BookInfoModal, {
   bookInfoFromModerationRow,
 } from "../../../components/common/bookinfomodal/BookInfoModal";
@@ -15,109 +15,155 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { truncateText } from "@/utils/truncateText";
+import { toast } from "sonner";
+import { nextFetch } from "@/utils/nextFetch";
+import { revalidate } from "@/utils/revalidateTag";
 
-type ModerationRow = {
-  id: string;
-  title: string;
-  description: string;
-  author: string;
-  genre: string;
-  submitted: string;
-  status: "Pending" | "Approved" | "Rejected";
-};
+function BookTable({ data, meta }: { data: any; meta: any }) {
+  const [selected, setSelected] = useState(null);
 
-const initialBooks: ModerationRow[] = [
-  { id: "1", title: "The Immortal’s Path", description: "An epic tale of magic and destiny...", author: "Chen Wei", genre: "Fantasy", submitted: "1 day ago", status: "Pending" },
-  { id: "2", title: "The Immortal’s Path", description: "An epic tale of magic and destiny...", author: "Chen Wei", genre: "Fantasy", submitted: "1 day ago", status: "Pending" },
-  { id: "3", title: "The Immortal’s Path", description: "An epic tale of magic and destiny...", author: "Chen Wei", genre: "Fantasy", submitted: "1 day ago", status: "Pending" },
-  { id: "4", title: "The Immortal’s Path", description: "An epic tale of magic and destiny...", author: "Chen Wei", genre: "Fantasy", submitted: "1 day ago", status: "Approved" },
-  { id: "5", title: "The Immortal’s Path", description: "An epic tale of magic and destiny...", author: "Chen Wei", genre: "Fantasy", submitted: "1 day ago", status: "Pending" },
-  { id: "6", title: "The Immortal’s Path", description: "An epic tale of magic and destiny...", author: "Chen Wei", genre: "Fantasy", submitted: "1 day ago", status: "Pending" },
-  { id: "7", title: "The Immortal’s Path", description: "An epic tale of magic and destiny...", author: "Chen Wei", genre: "Fantasy", submitted: "1 day ago", status: "Rejected" },
-  { id: "8", title: "The Immortal’s Path", description: "An epic tale of magic and destiny...", author: "Chen Wei", genre: "Fantasy", submitted: "1 day ago", status: "Pending" },
-];
+  // handle approve/reject
+  const handleApproveReject = async (id: string, status: string) => {
+    toast.loading("Processing...", {
+      id: "approve-reject",
+    });
 
-function BookTable() {
-  const [rows, setRows] = useState<ModerationRow[]>(() => [...initialBooks]);
-  const [selected, setSelected] = useState<ModerationRow | null>(null);
-
-  function deleteRow(id: string) {
-    setRows((prev) => prev.filter((r) => r.id !== id));
-    setSelected((s) => (s?.id === id ? null : s));
-  }
+    try {
+      const res = await nextFetch(
+        `/book/approved-reject/${id}?status=${status}`,
+        {
+          method: "PATCH",
+        },
+      );
+      if (res.success) {
+        revalidate("contents");
+        toast.success("Book updated successfully", {
+          id: "approve-reject",
+        });
+      } else {
+        toast.error("Failed to update book", {
+          id: "approve-reject",
+        });
+      }
+    } catch (error) {
+      toast.error("Failed to update book", {
+        id: "approve-reject",
+      });
+    }
+  };
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
       <Table className="w-full">
         <TableHeader>
           <TableRow className="border-b border-gray-200 hover:bg-transparent">
-            <TableHead className="pl-6 text-base font-medium text-gray-700">Title</TableHead>
-            <TableHead className="text-base font-medium text-gray-700">Author</TableHead>
-            <TableHead className="text-base font-medium text-gray-700">Genre</TableHead>
-            <TableHead className="text-base font-medium text-gray-700">Submitted</TableHead>
-            <TableHead className="text-base font-medium text-gray-700">Status</TableHead>
-            <TableHead className="pr-6 text-right text-base font-medium text-gray-700">Action</TableHead>
+            <TableHead className="pl-6 text-base font-medium text-gray-700">
+              Title
+            </TableHead>
+            <TableHead className="text-base font-medium text-gray-700">
+              Type
+            </TableHead>
+            <TableHead className="text-base font-medium text-gray-700">
+              Genre
+            </TableHead>
+            <TableHead className="text-base font-medium text-gray-700">
+              Chapter
+            </TableHead>
+            <TableHead className="text-base font-medium text-gray-700">
+              Page
+            </TableHead>
+            <TableHead className="text-base font-medium text-gray-700">
+              Review
+            </TableHead>
+            <TableHead className="text-base font-medium text-gray-700">
+              Rating
+            </TableHead>
+            <TableHead className="text-base font-medium text-gray-700">
+              Status
+            </TableHead>
+            <TableHead className="pr-6 text-right text-base font-medium text-gray-700">
+              Action
+            </TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
-          {rows.map((book) => (
-            <TableRow key={book.id} className="border-b border-gray-100 hover:bg-transparent">
+          {data?.map((book: any) => (
+            <TableRow
+              key={book._id}
+              className="border-b border-gray-100 hover:bg-transparent"
+            >
               <TableCell className="pl-6 py-4">
-                <p className="text-[24px] leading-tight font-medium text-gray-800">{book.title}</p>
-                <p className="mt-1 text-sm leading-tight text-gray-400 max-w-[220px]">{book.description}</p>
+                <p className="text-[24px] leading-tight font-medium text-gray-800">
+                  {book.title}
+                </p>
+                <p className="mt-1 text-sm leading-tight text-gray-400 max-w-[220px]">
+                  {truncateText(book.description, 10)}
+                </p>
               </TableCell>
-              <TableCell className="text-sm text-gray-500">{book.author}</TableCell>
+              <TableCell className="text-sm text-gray-500">
+                {book.type}
+              </TableCell>
               <TableCell>
-                <span className="inline-flex rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-500">
+                <span className="inline-flex rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-500 capitalize">
                   {book.genre}
                 </span>
               </TableCell>
-              <TableCell className="text-sm text-gray-500">{book.submitted}</TableCell>
+              <TableCell className="text-sm text-gray-500">
+                {book.chapterCount}
+              </TableCell>
+              <TableCell className="text-sm text-gray-500">
+                {book.pageCount}
+              </TableCell>
+              <TableCell className="text-sm text-gray-500">
+                {book.reviewCount}
+              </TableCell>
+              <TableCell className="text-sm text-gray-500">
+                {book.ratingCount?.toFixed(1)}
+              </TableCell>
               <TableCell>
                 <span
                   className={
-                    book.status === "Approved"
-                      ? "inline-flex rounded-md bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-500"
-                      : book.status === "Rejected"
-                        ? "inline-flex rounded-md bg-red-50 px-3 py-1 text-xs font-medium text-red-400"
-                        : "inline-flex rounded-md bg-amber-50 px-3 py-1 text-xs font-medium text-amber-500"
+                    book.status === "approved"
+                      ? "inline-flex rounded-md bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-500 capitalize"
+                      : book.status === "rejected"
+                        ? "inline-flex rounded-md bg-red-50 px-3 py-1 text-xs font-medium text-red-400 capitalize"
+                        : "inline-flex rounded-md bg-amber-50 px-3 py-1 text-xs font-medium text-amber-500 capitalize"
                   }
                 >
                   {book.status}
                 </span>
               </TableCell>
               <TableCell className="pr-6">
-                <div className="flex items-center justify-end gap-4">
+                {book.status === "approved_request" && (
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      onClick={() => handleApproveReject(book?._id, "approved")}
+                      type="button"
+                      className={`text-emerald-600 transition-colors hover:bg-emerald-100 p-2 rounded-lg cursor-pointer ${book.status !== "pending" ? "opacity-40 cursor-not-allowed" : ""}`}
+                      aria-label="Approve book"
+                    >
+                      <Check className="size-5" />
+                    </button>
+                    <button
+                      onClick={() => handleApproveReject(book?._id, "rejected")}
+                      type="button"
+                      className={`text-red-400 transition-colors hover:bg-red-100 p-2 rounded-lg cursor-pointer ${book.status !== "pending" ? "opacity-40 cursor-not-allowed" : ""}`}
+                      aria-label="Reject book"
+                    >
+                      <X className="size-5" />
+                    </button>
+                  </div>
+                )}
+                <div className="flex justify-end">
                   <button
-                    type="button"
-                    className="text-gray-400 transition-colors hover:text-gray-600"
-                    aria-label="View book"
                     onClick={() => setSelected(book)}
-                  >
-                    <Eye className="size-4" />
-                  </button>
-                  <button
                     type="button"
-                    className="text-emerald-600 transition-colors hover:text-emerald-700"
-                    aria-label="Approve book"
-                  >
-                    <CheckCircle2 className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    className="text-red-400 transition-colors hover:text-red-500"
+                    className={`text-gray-400 transition-colors hover:bg-gray-100 p-2 rounded-lg cursor-pointer`}
                     aria-label="Reject book"
                   >
-                    <Ban className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    className="flex size-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-500 transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-600"
-                    aria-label="Delete book"
-                    onClick={() => deleteRow(book.id)}
-                  >
-                    <Trash2 className="size-4" strokeWidth={1.75} />
+                    <Eye className="size-5" />
                   </button>
                 </div>
               </TableCell>
@@ -128,12 +174,18 @@ function BookTable() {
         <TableFooter className="bg-transparent">
           <TableRow className="border-0 hover:bg-transparent">
             <TableCell colSpan={6} className="px-6 py-4">
-              <PageLimit
-                pagination={{ page: 1, pageSize: 12, totalCount: 120 }}
-                onPaginationChange={() => { }}
-                itemLabel="books"
-                mode="summary"
-              />
+              {meta && (
+                <PageLimit
+                  pagination={{
+                    page: meta?.page,
+                    pageSize: meta?.limit,
+                    totalCount: meta?.total,
+                  }}
+                  onPaginationChange={() => {}}
+                  itemLabel="books"
+                  mode="summary"
+                />
+              )}
             </TableCell>
           </TableRow>
         </TableFooter>
