@@ -9,74 +9,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-type TopVotedBookRow = {
-  rank: number;
-  title: string;
-  description: string;
-  author: string;
-  dailyVotes: number;
-  weeklyVotes: number;
-  monthlyVotes: number;
-};
+function TopVotedBooksTable({ rows = [] }: { rows: any[] }) {
+  if (!rows.length) {
+    return (
+      <p className="rounded-xl border border-dashed border-gray-200 bg-white py-12 text-center text-sm text-slate-500">
+        No data available.
+      </p>
+    );
+  }
 
-const rows: TopVotedBookRow[] = [
-  {
-    rank: 1,
-    title: "The Immortal's Path",
-    description: "An epic tale of magic and destiny..",
-    author: "Chen Wei",
-    dailyVotes: 1245,
-    weeklyVotes: 1245,
-    monthlyVotes: 1245,
-  },
-  {
-    rank: 2,
-    title: "The Immortal's Path",
-    description: "An epic tale of magic and destiny..",
-    author: "Chen Wei",
-    dailyVotes: 1245,
-    weeklyVotes: 1245,
-    monthlyVotes: 1245,
-  },
-  {
-    rank: 3,
-    title: "The Immortal's Path",
-    description: "An epic tale of magic and destiny..",
-    author: "Chen Wei",
-    dailyVotes: 1245,
-    weeklyVotes: 1245,
-    monthlyVotes: 1245,
-  },
-  {
-    rank: 4,
-    title: "The Immortal's Path",
-    description: "An epic tale of magic and destiny..",
-    author: "Chen Wei",
-    dailyVotes: 1245,
-    weeklyVotes: 1245,
-    monthlyVotes: 1245,
-  },
-  {
-    rank: 5,
-    title: "The Immortal's Path",
-    description: "An epic tale of magic and destiny..",
-    author: "Chen Wei",
-    dailyVotes: 1245,
-    weeklyVotes: 1245,
-    monthlyVotes: 1245,
-  },
-  {
-    rank: 6,
-    title: "The Immortal's Path",
-    description: "An epic tale of magic and destiny..",
-    author: "Chen Wei",
-    dailyVotes: 1245,
-    weeklyVotes: 1245,
-    monthlyVotes: 1245,
-  },
-];
-
-function TopVotedBooksTable() {
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
       <Table className="w-full">
@@ -92,18 +33,18 @@ function TopVotedBooksTable() {
               Author
             </TableHead>
             <TableHead className="text-base font-medium text-gray-700">
-              Daily Votes
+              Category
             </TableHead>
             <TableHead className="text-base font-medium text-gray-700">
-              Weekly Votes
+              Votes
             </TableHead>
             <TableHead className="pr-6 text-base font-medium text-gray-700">
-              Monthly Votes
+              Views
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rows.map((row) => (
+          {rows.map((row: any) => (
             <TableRow
               key={row.rank}
               className="border-b border-gray-100 hover:bg-gray-50/40"
@@ -120,16 +61,18 @@ function TopVotedBooksTable() {
                 </p>
               </TableCell>
               <TableCell className="py-5 text-base text-gray-600">
-                {row.author}
+                {row.authorName}
+              </TableCell>
+              <TableCell className="py-5 text-base text-gray-600">
+                <span className="inline-flex rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-600">
+                  {row.category}
+                </span>
               </TableCell>
               <TableCell className="py-5 text-base tabular-nums text-gray-600">
-                {row.dailyVotes.toLocaleString()}
-              </TableCell>
-              <TableCell className="py-5 text-base tabular-nums text-gray-600">
-                {row.weeklyVotes.toLocaleString()}
+                {(row.votes || 0).toLocaleString()}
               </TableCell>
               <TableCell className="pr-6 py-5 text-base tabular-nums text-gray-600">
-                {row.monthlyVotes.toLocaleString()}
+                {(row.views || 0).toLocaleString()}
               </TableCell>
             </TableRow>
           ))}
