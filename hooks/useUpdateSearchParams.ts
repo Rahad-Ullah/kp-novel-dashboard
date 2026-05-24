@@ -2,10 +2,10 @@
 
 import { useRouter } from "next/navigation";
 
-export const useUpdateMultiSearchParams = () => {
+export const useUpdateSearchParams = () => {
     const router = useRouter();
 
-    const updateMultiSearchParams = (updates: Record<string, string | null>) => {
+    const updateSearchParams = (updates: Record<string, string | null>) => {
         const searchParams = new URLSearchParams(window.location.search);
 
         // Iterate over the updates object and set or delete keys
@@ -21,5 +21,5 @@ export const useUpdateMultiSearchParams = () => {
         router.push(newPath);
     };
 
-    return updateMultiSearchParams;
+    return updateSearchParams;
 };

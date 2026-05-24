@@ -40,10 +40,10 @@ function FilterSelect({
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger
         className={cn(
-          "h-10! rounded-lg border border-border bg-gray-100 text-zinc-300 cursor-pointer",
+          "h-10! rounded-lg border border-border bg-gray-100 text-zinc-600 cursor-pointer",
           "focus:ring-border",
           widthClasses[width],
-          className
+          className,
         )}
       >
         <SelectValue placeholder={placeholder} />
@@ -56,7 +56,7 @@ function FilterSelect({
         ))}
       </SelectContent>
     </Select>
-  )
+  );
 }
 
 export default FilterSelect
