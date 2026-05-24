@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { nextFetch } from "@/utils/nextFetch";
 
 function normalizeEmail(value: string) {
     return value.trim().toLowerCase();
@@ -49,10 +50,11 @@ function Login() {
 
   const { errors } = formState;
 
-  const onFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const onFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     event.stopPropagation();
     clearErrors();
+    toast.loading("Logging in...", { id: "login" });
 
     const form = formRef.current;
     if (!form) return;
@@ -89,9 +91,23 @@ function Login() {
     const password = passwordRaw;
 
     // Call the login API
-    
-    
-    console.log("Login attempt →", { email, password, remember });
+    try {
+      const res = await nextFetch("/auth/login", {
+        method: "POST",
+        body: { email, password },
+      });
+      if (res.success) {
+        toast.success(res.message, { id: "login" });
+        if (remember) {
+          localStorage.setItem("remember", "true");
+        }
+        router.push(`/${res?.data?.userData?.role}/dashboard`);
+      } else {
+        toast.error(res.message, { id: "login" });
+      }
+    } catch (error) {
+      toast.error("Something went wrong", { id: "login" });
+    }
   };
 
   return (
@@ -105,9 +121,6 @@ function Login() {
         </p>
       </div>
 
-      {/* FIX 3: Removed onClick={e => e.stopPropagation()} — unnecessary
-                and harmful. The form's onSubmit handler already calls
-                event.preventDefault() which is all that's needed. */}
       <form
         ref={formRef}
         className="space-y-5"
@@ -173,7 +186,7 @@ function Login() {
                   id={passwordId}
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   aria-invalid={Boolean(errors.password)}
                   className={cn(
                     "h-11 border-zinc-200 bg-zinc-50 pr-11 text-zinc-950 placeholder:text-zinc-500 dark:border-zinc-300 dark:bg-zinc-50 dark:text-zinc-950 dark:placeholder:text-zinc-500",
@@ -236,18 +249,6 @@ function Login() {
           Sign in
         </Button>
       </form>
-
-      <Separator className="bg-border" />
-
-      <p className="text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{" "}
-        <Link
-          href="/auth/register"
-          className="font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
-        >
-          Create an account
-        </Link>
-      </p>
     </div>
   );
 }

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { config } from "@/config/env-config";
 import { getToken } from "./getToken";
 
 export interface FetchResponse {
@@ -48,11 +47,11 @@ export const nextFetch = async (
         ...headers,
         ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-        ...(token ? { Authorization: `${token}` } : {}),
+        ...(token ? { token: `${token}` } : {}),
     };
 
     try {
-        const response = await fetch(`${config.baseURL}${url}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}${url}`, {
             method,
             headers: reqHeaders,
             ...(hasBody && { body: isFormData ? body : JSON.stringify(body) }),
