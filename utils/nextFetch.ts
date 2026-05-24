@@ -21,6 +21,7 @@ interface FetchOptions {
     method?: HttpMethod;
     body?: any;
     tags?: string[];
+    revalidate?: number | false; // time-based revalidation
     token?: string;
     headers?: Record<string, string>;
     cache?: RequestCache;
@@ -32,6 +33,7 @@ export const nextFetch = async (
         method = "GET",
         body,
         tags,
+        revalidate,
         token,
         headers = {},
         cache = "no-cache",
@@ -50,13 +52,22 @@ export const nextFetch = async (
         ...(token ? { token: `${token}` } : {}),
     };
 
+    const nextConfig: Record<string, any> = {};
+    if (tags) nextConfig.tags = tags;
+    if (revalidate !== undefined) nextConfig.revalidate = revalidate;
+
+    let cacheStrategy = cache;
+    if (method !== "GET") {
+        cacheStrategy = "no-store";
+    }
+
     try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}${url}`, {
             method,
             headers: reqHeaders,
             ...(hasBody && { body: isFormData ? body : JSON.stringify(body) }),
-            ...(tags && { next: { tags } }),
-            ...(!(method === "GET") ? { cache: "no-store" } : { cache: cache }),
+            ...(Object.keys(nextConfig).length > 0 && { next: nextConfig }),
+            ...(cacheStrategy && { cache: cacheStrategy }),
         });
 
         const data = await response.json();

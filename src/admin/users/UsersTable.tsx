@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { Eye, Ban, CheckCircle2 } from "lucide-react";
+import { LockOpen, Lock } from "lucide-react";
 import PageLimit from "@/components/common/pagelimit/PageLimit";
 import {
   Table,
@@ -11,19 +10,38 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUpdateSearchParams } from "@/hooks/useUpdateSearchParams";
-
-type UserRow = {
-  id: string;
-  name: string;
-  email: string;
-  role: "Author" | "Reader";
-  books: number;
-  joined: string;
-  status: "Active" | "Suspended";
-};
+import { toast } from "sonner";
+import { nextFetch } from "@/utils/nextFetch";
+import { revalidate } from "@/utils/revalidateTag";
 
 function UsersTable({ users, meta }: { users: any[]; meta: any }) {
   const updateSearchParams = useUpdateSearchParams();
+
+  // handle suspend user
+  const handleSuspendUser = async (userId: string) => {
+    toast.loading("Suspending user...", {
+      id: "suspend-user",
+    });
+    try {
+      const res = await nextFetch(`/users/blocked/${userId}`, {
+        method: "PATCH",
+      });
+      if (res.success) {
+        revalidate("users");
+        toast.success("User updated successfully", {
+          id: "suspend-user",
+        });
+      } else {
+        toast.error("Failed to update user", {
+          id: "suspend-user",
+        });
+      }
+    } catch (error) {
+      toast.error("Failed to update user", {
+        id: "suspend-user",
+      });
+    }
+  };
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
@@ -79,25 +97,21 @@ function UsersTable({ users, meta }: { users: any[]; meta: any }) {
               </TableCell>
               <TableCell className="pr-6">
                 <div className="flex items-center justify-end gap-4">
-                  <button
-                    className="text-gray-400 transition-colors hover:text-gray-600"
-                    aria-label="View user"
-                  >
-                    <Eye className="size-4" />
-                  </button>
-                  {user.status === "Active" ? (
+                  {user.isActive ? (
                     <button
-                      className="text-red-400 transition-colors hover:text-red-500"
+                      className="text-emerald-400 transition-colors hover:text-red-500 cursor-pointer"
                       aria-label="Suspend user"
+                      onClick={() => handleSuspendUser(user._id)}
                     >
-                      <Ban className="size-4" />
+                      <LockOpen className="size-5" />
                     </button>
                   ) : (
                     <button
-                      className="text-emerald-600 transition-colors hover:text-emerald-700"
+                      className="text-red-600 transition-colors hover:text-emerald-700 cursor-pointer"
                       aria-label="Activate user"
+                      onClick={() => handleSuspendUser(user._id)}
                     >
-                      <CheckCircle2 className="size-4" />
+                      <Lock className="size-5" />
                     </button>
                   )}
                 </div>

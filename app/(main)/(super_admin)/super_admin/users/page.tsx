@@ -18,7 +18,7 @@ async function UsersPage({
   if (searchTerm) query.set("searchTerm", searchTerm as string);
 
   const res = await nextFetch(`/users/all-users?${query.toString()}`, {
-    cache: "no-cache",
+    tags: ["users"],
   });
 
   return <UsersLayout users={res.data} meta={res.meta} />;

@@ -1,6 +1,6 @@
 "use client";
 
-import { Ban, Eye, StarIcon } from "lucide-react";
+import { Lock, LockOpen, StarIcon } from "lucide-react";
 import PageLimit from "@/components/common/pagelimit/PageLimit";
 import {
     Table,
@@ -12,20 +12,38 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { useUpdateSearchParams } from "@/hooks/useUpdateSearchParams";
-
-type ReaderRow = {
-    id: string;
-    name: string;
-    email: string;
-    booksRead: number;
-    chaptersRead: number;
-    powerStones: number;
-    lastActive: string;
-    status: "Active" | "Suspended";
-};
+import { toast } from "sonner";
+import { nextFetch } from "@/utils/nextFetch";
+import { revalidate } from "@/utils/revalidateTag";
 
 function ReadersTable({ users, meta }: { users: any[]; meta: any }) {
   const updateSearchParams = useUpdateSearchParams();
+
+  // handle suspend user
+  const handleSuspendUser = async (userId: string) => {
+    toast.loading("Suspending user...", {
+      id: "suspend-user",
+    });
+    try {
+      const res = await nextFetch(`/users/blocked/${userId}`, {
+        method: "PATCH",
+      });
+      if (res.success) {
+        revalidate("users");
+        toast.success("User updated successfully", {
+          id: "suspend-user",
+        });
+      } else {
+        toast.error("Failed to update user", {
+          id: "suspend-user",
+        });
+      }
+    } catch (error) {
+      toast.error("Failed to update user", {
+        id: "suspend-user",
+      });
+    }
+  };
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
@@ -93,20 +111,23 @@ function ReadersTable({ users, meta }: { users: any[]; meta: any }) {
               </TableCell>
               <TableCell className="pr-6 py-5">
                 <div className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    className="text-gray-400 transition-colors hover:text-gray-600"
-                    aria-label="View reader"
-                  >
-                    <Eye className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    className="text-gray-400 transition-colors hover:text-gray-600"
-                    aria-label="Suspend reader"
-                  >
-                    <Ban className="size-4" />
-                  </button>
+                  {reader.isActive ? (
+                    <button
+                      className="text-emerald-400 transition-colors hover:text-red-500 cursor-pointer"
+                      aria-label="Suspend user"
+                      onClick={() => handleSuspendUser(reader._id)}
+                    >
+                      <LockOpen className="size-5" />
+                    </button>
+                  ) : (
+                    <button
+                      className="text-red-600 transition-colors hover:text-emerald-700 cursor-pointer"
+                      aria-label="Activate user"
+                      onClick={() => handleSuspendUser(reader._id)}
+                    >
+                      <Lock className="size-5" />
+                    </button>
+                  )}
                 </div>
               </TableCell>
             </TableRow>
