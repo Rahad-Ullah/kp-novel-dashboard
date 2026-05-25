@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
 import { CirclePower } from "lucide-react"
 
 import LogoutConfirmationModal from "@/components/common/logoutconfirmation/LogoutConfirmationModal"
@@ -15,20 +14,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { clearStoredUserRole } from "@/lib/auth-storage"
+import { deleteCookie } from "cookies-next";
 
 export function AppHeader() {
-  const router = useRouter()
-  const [logoutOpen, setLogoutOpen] = useState(false)
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   const handleLogoutConfirm = () => {
-    clearStoredUserRole()
-    router.push("/auth/login")
-  }
+    deleteCookie("accessToken");
+    deleteCookie("refreshToken");
+    window.location.replace("/auth/login");
+  };
 
   return (
     <TooltipProvider>
-
       <header className="flex h-16 w-full shrink-0 items-center justify-between gap-2 border-b border-border bg-sidebar transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
         <Tooltip>
           <TooltipTrigger asChild>
@@ -68,5 +66,5 @@ export function AppHeader() {
         onConfirm={handleLogoutConfirm}
       />
     </TooltipProvider>
-  )
+  );
 }
