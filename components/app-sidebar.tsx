@@ -99,67 +99,39 @@ const SuperAdminViewItems = [
   {
     title: "Dashboard",
     url: "/super_admin/dashboard",
-    icon: (
-      <LayoutDashboardIcon
-      />
-    ),
+    icon: <LayoutDashboardIcon />,
   },
   {
     title: "Users",
     url: "/super_admin/users",
-    icon: (
-      <UsersIcon
-      />
-    ),
+    icon: <UsersIcon />,
   },
   {
     title: "Contents",
     url: "/super_admin/contents",
-    icon: (
-      <BookIcon
-      />
-    ),
+    icon: <BookIcon />,
   },
   {
     title: "Authors",
     url: "/super_admin/authors",
-    icon: (
-      <UserIcon
-      />
-    ),
+    icon: <UserIcon />,
   },
   {
     title: "Votes & Ratings",
     url: "/super_admin/votes-ratings",
-    icon: (
-      <StarIcon
-      />
-    ),
+    icon: <StarIcon />,
   },
   {
     title: "Comments & Moderation",
     url: "/super_admin/comments-moderation",
-    icon: (
-      <MessageCircleIcon
-      />
-    ),
+    icon: <MessageCircleIcon />,
   },
   {
     title: "Settings",
     url: "/super_admin/settings",
-    icon: (
-      <SettingsIcon
-      />
-    ),
+    icon: <SettingsIcon />,
   },
-  {
-    title: "Site Analytics",
-    url: "/super_admin/site-analytics",
-    icon: (
-      <ChartScatter />
-    ),
-  },
-]
+];
 
 
 
