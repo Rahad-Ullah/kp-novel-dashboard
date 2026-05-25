@@ -6,7 +6,7 @@ async function VotesRatingsPage({
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
-  const { searchTerm, type, mainType } = await searchParams;
+  const { searchTerm, type, mainType = "vote" } = await searchParams;
 
   const query = new URLSearchParams();
   if (searchTerm) query.set("searchTerm", searchTerm as string);

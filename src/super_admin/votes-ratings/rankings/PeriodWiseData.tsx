@@ -9,64 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-type CategoryCell =
-  | { kind: "badge"; label: string }
-  | { kind: "text"; value: string };
-
-type PeriodRankingRow = {
-  rank: number;
-  title: string;
-  description: string;
-  author: string;
-  category: CategoryCell;
-  dailyVotes: number;
-  views: number;
-};
-
-const rows: PeriodRankingRow[] = [
-  {
-    rank: 1,
-    title: "The Immortal's Path",
-    description: "An epic tale of magic and destiny..",
-    author: "Chen Wei",
-    category: { kind: "badge", label: "Fantasy" },
-    dailyVotes: 1245,
-    views: 1245,
-  },
-  {
-    rank: 2,
-    title: "The Immortal's Path",
-    description: "An epic tale of magic and destiny..",
-    author: "Chen Wei",
-    category: { kind: "text", value: "1245" },
-    dailyVotes: 1245,
-    views: 1245,
-  },
-  {
-    rank: 3,
-    title: "The Immortal's Path",
-    description: "An epic tale of magic and destiny..",
-    author: "Chen Wei",
-    category: { kind: "text", value: "1245" },
-    dailyVotes: 1245,
-    views: 1245,
-  },
-];
-
-function CategoryDisplay({ category }: { category: CategoryCell }) {
-  if (category.kind === "badge") {
-    return (
-      <span className="inline-flex rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-600">
-        {category.label}
-      </span>
-    );
-  }
-  return (
-    <span className="text-base text-gray-600 tabular-nums">{category.value}</span>
-  );
-}
-
-function PeriodWiseBookRank() {
+function PeriodWiseBookRank({ data }: { data: any }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
       <Table className="w-full">
@@ -85,7 +28,7 @@ function PeriodWiseBookRank() {
               Category
             </TableHead>
             <TableHead className="text-base font-semibold text-gray-700">
-              Daily Votes
+              Votes
             </TableHead>
             <TableHead className="pr-6 text-base font-semibold text-gray-700">
               Views
@@ -93,7 +36,7 @@ function PeriodWiseBookRank() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rows.map((row) => (
+          {data?.map((row: any) => (
             <TableRow
               key={row.rank}
               className="border-b border-gray-100 hover:bg-gray-50/40"
@@ -110,19 +53,29 @@ function PeriodWiseBookRank() {
                 </p>
               </TableCell>
               <TableCell className="py-5 text-base text-gray-600">
-                {row.author}
+                {row.authorName}
               </TableCell>
-              <TableCell className="py-5 align-middle">
-                <CategoryDisplay category={row.category} />
+              <TableCell className="py-5 text-base text-gray-600">
+                {row.category}
               </TableCell>
               <TableCell className="py-5 text-base tabular-nums text-gray-600">
-                {row.dailyVotes.toLocaleString()}
+                {row.votes}
               </TableCell>
               <TableCell className="pr-6 py-5 text-base tabular-nums text-gray-600">
-                {row.views.toLocaleString()}
+                {row.views}
               </TableCell>
             </TableRow>
           ))}
+          {data?.length === 0 && (
+            <TableRow>
+              <TableCell
+                colSpan={6}
+                className="h-24 text-center text-base text-gray-500"
+              >
+                No data available
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>
