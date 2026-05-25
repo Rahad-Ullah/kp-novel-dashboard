@@ -1,18 +1,21 @@
+"use client"
 import Link from "next/link"
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+} from "recharts"
 
 import {
     Card,
     CardContent,
 } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 import SmallPageInfo from "@/components/common/smallPageInfo/smallPageInfo"
-
-const writingGoals = [
-    { label: "Chapters Published", value: "8/10", progress: 80 },
-    { label: "Words Written", value: "54,000", progress: 40 },
-    { label: "Reader Engagement", value: "68%", progress: 68 },
-] as const
 
 const quickActions = [
     {
@@ -32,34 +35,46 @@ const quickActions = [
     },
 ] as const
 
-function ProgresAndAction() {
+interface ReadChartAndActionProps {
+    readBook: Array<{ month: string; views: number }>;
+}
+
+function ReadChartAndAction({ readBook }: ReadChartAndActionProps) {
     return (
         <div className="mt-6 grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
             <div className="flex min-h-0 flex-col lg:h-full">
                 <div className="shrink-0">
                     <SmallPageInfo
-                        title="Writing Progress"
-                        description="Your monthly writing goals"
+                        title="Monthly Reads"
+                        description="Your book views over the year"
                     />
                 </div>
                 <Card className="mt-4 flex min-h-0 flex-1 flex-col border border-violet-200/80 bg-white shadow-sm ring-0 dark:border-violet-500/25 dark:bg-card">
-
-                    <CardContent className="flex flex-1 flex-col px-0 pb-2 pt-0">
-                        <div className="divide-y divide-border px-4 ">
-                            {writingGoals.map((item) => (
-                                <div key={item.label} className="space-y-2 py-4 first:pt-4">
-                                    <div className="flex items-center justify-between gap-4">
-                                        <span className="font-semibold text-sidebar-primary">
-                                            {item.label}
-                                        </span>
-                                        <span className="text-sm text-sidebar-primary">{item.value}</span>
-                                    </div>
-                                    <Progress
-                                        value={item.progress}
-                                        className="h-2 bg-muted **:data-[slot=progress-indicator]:bg-blue-600"
+                    <CardContent className="flex flex-1 flex-col px-0 pb-4 pt-6">
+                        <div className="h-[250px] w-full px-4">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={readBook}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                    <XAxis 
+                                        dataKey="month" 
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#6b7280', fontSize: 12 }}
+                                        dy={10}
                                     />
-                                </div>
-                            ))}
+                                    <YAxis 
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#6b7280', fontSize: 12 }}
+                                        dx={-10}
+                                    />
+                                    <Tooltip 
+                                        cursor={{ fill: '#f3f4f6' }}
+                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                    />
+                                    <Bar dataKey="views" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
                         </div>
                     </CardContent>
                 </Card>
@@ -74,7 +89,7 @@ function ProgresAndAction() {
                 </div>
                 <Card className="mt-4 flex min-h-0 flex-1 flex-col border-0 bg-linear-to-br from-blue-800 via-blue-700 to-purple-600 text-white shadow-md ring-0">
 
-                    <CardContent className="flex flex-col gap-3 pb-4 lg:flex-1">
+                    <CardContent className="flex flex-col gap-3 pb-4 lg:flex-1 pt-6">
                         {quickActions.map((action) => (
                             <Link
                                 key={action.title}
@@ -93,9 +108,8 @@ function ProgresAndAction() {
                     </CardContent>
                 </Card>
             </div>
-
         </div>
     )
 }
 
-export default ProgresAndAction
+export default ReadChartAndAction

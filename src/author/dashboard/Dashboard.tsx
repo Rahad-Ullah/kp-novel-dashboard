@@ -1,37 +1,46 @@
-import React from 'react'
 import SmallPageInfo from '@/components/common/smallPageInfo/smallPageInfo'
-import { BookIcon, BookOpenIcon, EyeIcon, MessageCircleIcon } from 'lucide-react'
+import { BookIcon, BookOpenIcon, StarIcon, CheckCircleIcon } from 'lucide-react'
 import Stats from '@/components/common/stats/Stats'
-import ProgresAndAction from './ProgresAndAction'
+import ReadChartAndAction from './ReadChartAndAction'
 import ChapterAndComment from './ChapterAndComment'
 
-function Dashboard() {
+export interface DashboardData {
+    totalBooks?: number;
+    totalChapters?: number;
+    totalPublishBooks?: number;
+    totalVotes?: number;
+    readBook?: Array<{ month: string; views: number }>;
+    recentChapters?: Array<{ _id: string; title: string; chapterNumber: number; status: string }>;
+    recentComments?: Array<{ _id: string; userId: { fullName: string; profile: string }; message: string; createdAt?: string }>;
+}
+
+function Dashboard({ data }: { data: DashboardData }) {
     const stats = [
         {
             title: "Total Books",
-            value: 100,
+            value: data?.totalBooks || 0,
             icon: <BookIcon />,
             iconColor: "text-white ",
             iconBackgroundColor: "bg-linear-to-r from-blue-500 to-purple-500! ",
         },
         {
             title: "Total Chapters",
-            value: 100,
+            value: data?.totalChapters || 0,
             icon: <BookOpenIcon />,
             iconColor: "text-white ",
             iconBackgroundColor: "bg-linear-to-r from-violet-500 to-pink-500! ",
         },
         {
-            title: "Total Views",
-            value: 100,
-            icon: <EyeIcon />,
+            title: "Published Books",
+            value: data?.totalPublishBooks || 0,
+            icon: <CheckCircleIcon />,
             iconColor: "text-white ",
             iconBackgroundColor: "bg-linear-to-r from-blue-500 to-violet-500! ",
         },
         {
-            title: "Total Comments",
-            value: 100,
-            icon: <MessageCircleIcon />,
+            title: "Total Votes",
+            value: data?.totalVotes || 0,
+            icon: <StarIcon />,
             iconColor: "text-white ",
             iconBackgroundColor: "bg-linear-to-r from-green-500 to-lime-500! ",
         },
@@ -53,8 +62,11 @@ function Dashboard() {
                     />
                 ))}
             </div>
-            <ProgresAndAction />
-            <ChapterAndComment />
+            <ReadChartAndAction readBook={data?.readBook || []} />
+            <ChapterAndComment 
+                recentChapters={data?.recentChapters || []}
+                recentComments={data?.recentComments || []}
+            />
         </div>
     )
 }

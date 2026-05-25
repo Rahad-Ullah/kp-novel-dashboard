@@ -11,12 +11,46 @@ import FilterSearch from "@/components/common/filter/FIlterSearch"
 import SmallPageInfo from "@/components/common/smallPageInfo/smallPageInfo"
 import Stats from "@/components/common/stats/Stats"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 import BookCard from "@/src/author/mybooks/BookCard"
 import { BookIcon, BookOpenIcon, EyeIcon, MessageCircleIcon } from "lucide-react"
 import BookInfoModal, {
   type BookInfoData,
   buildChapterPreviews,
 } from "@/components/common/bookinfomodal/BookInfoModal"
+import { createBookAction, updateBookAction, deleteBookAction } from "./actions"
+
+export interface ApiBookItem {
+  _id: string;
+  userId?: string;
+  title?: string;
+  coverImage?: string;
+  description?: string;
+  type?: string;
+  genre?: string;
+  age?: string;
+  status?: string;
+  tags?: string[];
+  commentCount?: number;
+  readCount?: number;
+  reviewCount?: number;
+  ratingCount?: number;
+  chapterCount?: number;
+  pageCount?: number;
+  voteCount?: number;
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  likeCount?: number;
+}
+
+export interface MyBooksData {
+  totalNovelBooks?: number;
+  totalShortStoryBooks?: number;
+  totalPendingBooks?: number;
+  totalPublishedBooks?: number;
+  result?: ApiBookItem[];
+}
 
 type BookRow = {
   id: string
@@ -74,12 +108,60 @@ function bookInfoFromMyBooksRow(book: BookRow): BookInfoData {
     chapterPreviews: buildChapterPreviews(book.chapters),
   }
 }
-function Mybooks() {
+
+function mapApiBookToRow(apiBook: ApiBookItem): BookRow {
+  let imageUrl = apiBook.coverImage || "";
+  if (imageUrl && !imageUrl.startsWith("http") && !imageUrl.startsWith("/")) {
+    imageUrl = imageUrl.replace(/\\/g, "/");
+    imageUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL || "http://10.10.7.65:5006"}/${imageUrl}`;
+  } else if (imageUrl.startsWith("/")) {
+    imageUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL || "http://10.10.7.65:5006"}${imageUrl}`;
+  }
+
+  let parsedTags: string[] = [];
+  if (apiBook.tags && Array.isArray(apiBook.tags)) {
+    apiBook.tags.forEach(tagGroup => {
+        try {
+            const parsed = JSON.parse(tagGroup);
+            if (Array.isArray(parsed)) {
+                parsedTags.push(...parsed);
+            } else {
+                parsedTags.push(...tagGroup.split(",").map(s => s.trim()));
+            }
+        } catch(e) {
+            parsedTags.push(...tagGroup.split(",").map(s => s.trim()));
+        }
+    })
+  }
+
+  return {
+    id: apiBook._id,
+    title: apiBook.title || "Untitled",
+    coverImage: imageUrl,
+    status: (apiBook.status === "approved" || apiBook.status === "published") ? "published" : "pending",
+    genres: [apiBook.genre || ""].filter(Boolean),
+    rating: apiBook.ratingCount || 0,
+    reviews: apiBook.reviewCount || 0,
+    chapters: apiBook.chapterCount || 0,
+    likes: apiBook.likeCount || 0,
+    views: apiBook.readCount || 0,
+    description: apiBook.description || "",
+    bookType: (apiBook.type?.toLowerCase() === "novel" ? "novel" : "short_stories") as BookFormType,
+    primaryGenre: apiBook.genre || "",
+    ageDemand: apiBook.age || "",
+    tags: parsedTags,
+  };
+}
+
+function Mybooks({ initialData }: { initialData?: MyBooksData }) {
   const router = useRouter()
   const [bookModalOpen, setBookModalOpen] = React.useState(false)
   const [editingBook, setEditingBook] = React.useState<BookRow | null>(null)
   const [viewingBook, setViewingBook] = React.useState<BookRow | null>(null)
   const [viewingBookModalOpen, setViewingBookModalOpen] = React.useState(false)
+  const [searchTerm, setSearchTerm] = React.useState("")
+  const [statusFilter, setStatusFilter] = React.useState("All")
+
   const modalInitialValues = React.useMemo(
     (): AddEditBookInitialValues | undefined =>
       editingBook ? bookToInitialValues(editingBook) : undefined,
@@ -106,148 +188,117 @@ function Mybooks() {
     router.push(`/author/add-chapter/${segment}`)
   }
 
-  const handleSaveBook = (values: AddBookFormValues) => {
-    if (editingBook) {
-      console.log("Update book", editingBook.id, values)
-    } else {
-      console.log("Create book", values)
+  const handleSaveBook = async (values: AddBookFormValues) => {
+    try {
+      const formData = new FormData()
+      formData.append("title", values.title)
+      formData.append("description", values.description)
+      formData.append("type", values.type)
+      formData.append("genre", values.genre)
+      formData.append("age", values.ageDemand)
+      
+      values.tags.forEach((tag) => {
+        formData.append("tags", tag)
+      })
+
+      if (values.coverFile) {
+        formData.append("coverImage", values.coverFile)
+      }
+
+      let res;
+      if (editingBook) {
+        res = await updateBookAction(editingBook.id, formData)
+      } else {
+        res = await createBookAction(formData)
+      }
+      
+      if (res.success) {
+        toast.success(`Book ${editingBook ? "updated" : "created"} successfully!`)
+        setBookModalOpen(false)
+        router.refresh()
+      } else {
+        console.error(`Failed to ${editingBook ? "update" : "create"} book:`, res.message)
+        toast.error(res.message || `Failed to ${editingBook ? "update" : "create"} book`)
+      }
+    } catch (error) {
+      console.error(`Error ${editingBook ? "updating" : "creating"} book:`, error)
+      toast.error(`An error occurred while ${editingBook ? "updating" : "creating"} the book.`)
+    }
+  }
+
+  const handleDeleteBook = async (book: BookRow) => {
+    if (!window.confirm(`Are you sure you want to delete "${book.title}"?`)) {
+      return
+    }
+
+    try {
+      const res = await deleteBookAction(book.id)
+      if (res.success) {
+        toast.success("Book deleted successfully!")
+        router.refresh()
+      } else {
+        toast.error(res.message || "Failed to delete book")
+      }
+    } catch (error) {
+      console.error("Error deleting book:", error)
+      toast.error("An error occurred while deleting the book.")
     }
   }
 
   const search = {
-    placeholder: "Search",
-    value: "",
-    onChange: (value: string) => {
-      console.log(value)
-    },
+    placeholder: "Search books...",
+    value: searchTerm,
+    onChange: setSearchTerm,
   }
   const selects = [
     {
-      placeholder: "Select",
-      options: ["Option 1", "Option 2", "Option 3"],
-      value: "",
-      onValueChange: (value: string) => {
-        console.log(value)
-      },
+      placeholder: "Status",
+      options: ["All", "published", "pending"],
+      value: statusFilter,
+      onValueChange: setStatusFilter,
     },
   ]
   const stats = [
     {
       title: "Total Novels",
-      value: 100,
+      value: initialData?.totalNovelBooks || 0,
       icon: <BookIcon />,
       iconColor: "text-white ",
       iconBackgroundColor: "bg-linear-to-r from-blue-500 to-purple-500! ",
     },
     {
       title: "Short Stories",
-      value: 100,
+      value: initialData?.totalShortStoryBooks || 0,
       icon: <BookOpenIcon />,
       iconColor: "text-white ",
       iconBackgroundColor: "bg-linear-to-r from-violet-500 to-pink-500! ",
     },
     {
       title: "Pending",
-      value: 100,
+      value: initialData?.totalPendingBooks || 0,
       icon: <EyeIcon />,
       iconColor: "text-white ",
       iconBackgroundColor: "bg-linear-to-r from-blue-500 to-violet-500! ",
     },
     {
       title: "Published",
-      value: 100,
+      value: initialData?.totalPublishedBooks || 0,
       icon: <MessageCircleIcon />,
       iconColor: "text-white ",
       iconBackgroundColor: "bg-linear-to-r from-green-500 to-lime-500! ",
     },
   ]
-  const books: BookRow[] = [
-    {
-      id: "1",
-      title: "The Immortal’s Path",
-      coverImage: "/bekas.jpg",
-      status: "published",
-      genres: ["Fantasy", "Romance", "Young Adult"],
-      rating: 4.5,
-      reviews: 100,
-      chapters: 10,
-      likes: 100,
-      views: 100,
-      description: "A sweeping fantasy about courage and friendship.",
-      bookType: "novel",
-      primaryGenre: "Fantasy",
-      ageDemand: "13+",
-      tags: ["#fantasy", "#adventure"],
-    },
-    {
-      id: "2",
-      title: "Book 2",
-      coverImage: "/bekas.jpg",
-      status: "published",
-      genres: ["Mystery", "Thriller"],
-      rating: 4.5,
-      reviews: 100,
-      chapters: 10,
-      likes: 100,
-      views: 100,
-      description: "Short mysteries you can finish in one sitting.",
-      bookType: "short_stories",
-      primaryGenre: "Mystery",
-      ageDemand: "16+",
-      tags: ["#mystery", "#noir"],
-    },
-    {
-      id: "3",
-      title: "Book 3",
-      coverImage: "/bekas.jpg",
-      status: "published",
-      genres: ["Science Fiction"],
-      rating: 4.5,
-      reviews: 100,
-      chapters: 10,
-      likes: 100,
-      views: 100,
-      description: "First contact, told from two timelines.",
-      bookType: "novel",
-      primaryGenre: "Science Fiction",
-      ageDemand: "13+",
-      tags: ["#scifi"],
-    },
-    {
-      id: "4",
-      title: "Book 4",
-      coverImage: "/bekas.jpg",
-      status: "pending",
-      genres: ["Romance", "Contemporary"],
-      rating: 4.5,
-      reviews: 100,
-      chapters: 10,
-      likes: 100,
-      views: 100,
-      description: "Summer in the city, second chances.",
-      bookType: "novel",
-      primaryGenre: "Romance",
-      ageDemand: "18+",
-      tags: ["#romance", "#contemporary"],
-    },
-    {
-      id: "5",
-      title: "Book 5",
-      coverImage: "/bekas.jpg",
-      status: "published",
-      genres: ["Horror"],
-      rating: 4.5,
-      reviews: 100,
-      chapters: 10,
-      likes: 100,
-      views: 100,
-      description: "Stories best read with the lights on.",
-      bookType: "short_stories",
-      primaryGenre: "Horror",
-      ageDemand: "16+",
-      tags: ["#horror"],
-    },
-  ]
+  const books: BookRow[] = (initialData?.result || [])
+    .map(mapApiBookToRow)
+    .filter((book) => {
+      const matchesSearch =
+        book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        book.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === "All" || book.status === statusFilter.toLowerCase();
+      return matchesSearch && matchesStatus;
+    });
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -294,7 +345,7 @@ function Mybooks() {
             onEdit={() => openEditBook(book)}
             onView={() => openViewBook(book)}
             onAddChapters={() => goAddChapters(book)}
-            onDelete={() => {}}
+            onDelete={() => handleDeleteBook(book)}
           />
         ))}
       </div>

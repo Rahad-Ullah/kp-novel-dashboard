@@ -1,8 +1,12 @@
 import MyChapters from '@/src/author/mychapters/MyChapters'
+import { nextFetch } from "@/utils/nextFetch"
 
-function MyChaptersPage() {
+async function MyChaptersPage() {
+    const res = await nextFetch("/chapter/author")
+    const data = res.data || {}
+
     return (
-        <MyChapters />
+        <MyChapters initialData={data} />
     )
 }
 

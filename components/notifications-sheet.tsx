@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { BellIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -25,66 +26,46 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import { fetchNotificationsAction, markNotificationAsReadAction } from "@/src/actions/notifications"
 
-type NotificationItem = {
-  id: string
+type ApiNotification = {
+  _id: string
   title: string
-  body: string
-  time: string
-  unread: boolean
+  message: string
+  isRead: boolean
+  createdAt: string
 }
 
-const NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: "1",
-    title: "New comment on Chapter 15",
-    body: `DragonFan2024 commented: "This chapter was absolutely amazing!"`,
-    time: "2 min ago",
-    unread: true,
-  },
-  {
-    id: "2",
-    title: "New follower",
-    body: "StorySeeker started following your novel.",
-    time: "1 hour ago",
-    unread: true,
-  },
-  {
-    id: "3",
-    title: "Review published",
-    body: "Your latest chapter received a 5-star review.",
-    time: "Yesterday",
-    unread: false,
-  },
-  {
-    id: "4",
-    title: "Milestone reached",
-    body: "You've passed 10k total views on your series.",
-    time: "2 days ago",
-    unread: false,
-  },
-  {
-    id: "5",
-    title: "Schedule reminder",
-    body: "Your draft for Chapter 18 is due in 3 days.",
-    time: "3 days ago",
-    unread: false,
-  },
-]
+function formatTimeAgo(dateString: string) {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (diffInSeconds < 60) return `${diffInSeconds} sec ago`
+    const diffInMinutes = Math.floor(diffInSeconds / 60)
+    if (diffInMinutes < 60) return `${diffInMinutes} min ago`
+    const diffInHours = Math.floor(diffInMinutes / 60)
+    if (diffInHours < 24) return `${diffInHours} hours ago`
+    const diffInDays = Math.floor(diffInHours / 24)
+    if (diffInDays < 30) return `${diffInDays} days ago`
+    const diffInMonths = Math.floor(diffInDays / 30)
+    return `${diffInMonths} months ago`
+}
 
 const tabTriggerClass =
   "flex-0 rounded-full border-0 bg-transparent px-3  text-sm font-medium text-gray-500  shadow-none transition-colors data-active:bg-blue-600 data-active:text-white  data-active:shadow-none hover:text-black dark:data-active:text-primary-foreground"
 
-function NotificationCard({ item }: { item: NotificationItem }) {
+function NotificationCard({ item, onClick }: { item: ApiNotification; onClick?: () => void }) {
   return (
     <Card
       className={cn(
-        "relative gap-0 py-3.5 ",
+        "relative gap-0 py-3.5 cursor-pointer transition-colors hover:bg-gray-50",
         "bg-card"
       )}
       size="sm"
+      onClick={onClick}
     >
-      {item.unread ? (
+      {!item.isRead ? (
         <span
           className="bg-primary absolute top-3.5 right-3.5 size-2 shrink-0 rounded-full"
           aria-hidden
@@ -95,11 +76,11 @@ function NotificationCard({ item }: { item: NotificationItem }) {
           {item.title}
         </CardTitle>
         <CardDescription className="text-[13px] leading-snug">
-          {item.body}
+          {item.message}
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-2 pb-0">
-        <p className="text-gray-500 text-xs">{item.time}</p>
+        <p className="text-gray-500 text-xs">{formatTimeAgo(item.createdAt)}</p>
       </CardContent>
     </Card>
   )
@@ -110,8 +91,39 @@ export function NotificationsSheetTrigger({
 }: {
   className?: string
 }) {
-  const all = NOTIFICATIONS.length
-  const unreadCount = NOTIFICATIONS.filter((n) => n.unread).length
+  const [notifications, setNotifications] = React.useState<ApiNotification[]>([])
+  const [unreadCount, setUnreadCount] = React.useState(0)
+  const [isLoading, setIsLoading] = React.useState(false)
+
+  const handleMarkAsRead = async (id: string, isRead: boolean) => {
+    if (isRead) return;
+    
+    // Optimistic UI update
+    setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n))
+    setUnreadCount(prev => Math.max(0, prev - 1))
+
+    try {
+      const res = await markNotificationAsReadAction(id)
+      if (!res.success) {
+        console.error(res.message)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  React.useEffect(() => {
+    setIsLoading(true)
+    fetchNotificationsAction().then(res => {
+      if (res.success && res.data) {
+        setNotifications(res.data.result || [])
+        setUnreadCount(res.data.unReadCount || 0)
+      }
+    }).catch(console.error)
+      .finally(() => setIsLoading(false))
+  }, [])
+
+  const all = notifications.length
   const readCount = all - unreadCount
 
   return (
@@ -124,12 +136,17 @@ export function NotificationsSheetTrigger({
               variant="ghost"
               size="icon"
               className={cn(
-                "mr-4 size-8 rounded-xl border text-gray-900 hover:bg-gray-200 hover:text-gray-700",
+                "mr-4 size-8 rounded-xl border text-gray-900 hover:bg-gray-200 hover:text-gray-700 relative",
                 className
               )}
               aria-label="Open notifications"
             >
               <BellIcon className="size-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                  {unreadCount}
+                </span>
+              )}
             </Button>
           </SheetTrigger>
         </TooltipTrigger>
@@ -172,11 +189,17 @@ export function NotificationsSheetTrigger({
               className="mt-0 min-h-0 flex-1 overflow-y-auto outline-none"
             >
               <ul className="flex flex-col gap-3">
-                {NOTIFICATIONS.map((item) => (
-                  <li key={item.id}>
-                    <NotificationCard item={item} />
-                  </li>
-                ))}
+                {isLoading ? (
+                  <li className="text-center text-gray-500 py-4">Loading...</li>
+                ) : notifications.length === 0 ? (
+                  <li className="text-center text-gray-500 py-4">No notifications yet</li>
+                ) : (
+                  notifications.map((item) => (
+                    <li key={item._id}>
+                      <NotificationCard item={item} onClick={() => handleMarkAsRead(item._id, item.isRead)} />
+                    </li>
+                  ))
+                )}
               </ul>
             </TabsContent>
             <TabsContent
@@ -184,11 +207,15 @@ export function NotificationsSheetTrigger({
               className="mt-0 min-h-0 flex-1 overflow-y-auto outline-none"
             >
               <ul className="flex flex-col gap-3">
-                {NOTIFICATIONS.filter((n) => n.unread).map((item) => (
-                  <li key={item.id}>
-                    <NotificationCard item={item} />
-                  </li>
-                ))}
+                {notifications.filter((n) => !n.isRead).length === 0 ? (
+                  <li className="text-center text-gray-500 py-4">No unread notifications</li>
+                ) : (
+                  notifications.filter((n) => !n.isRead).map((item) => (
+                    <li key={item._id}>
+                      <NotificationCard item={item} onClick={() => handleMarkAsRead(item._id, item.isRead)} />
+                    </li>
+                  ))
+                )}
               </ul>
             </TabsContent>
             <TabsContent
@@ -196,11 +223,15 @@ export function NotificationsSheetTrigger({
               className="mt-0 min-h-0 flex-1 overflow-y-auto outline-none"
             >
               <ul className="flex flex-col gap-3">
-                {NOTIFICATIONS.filter((n) => !n.unread).map((item) => (
-                  <li key={item.id}>
-                    <NotificationCard item={item} />
-                  </li>
-                ))}
+                {notifications.filter((n) => n.isRead).length === 0 ? (
+                  <li className="text-center text-gray-500 py-4">No read notifications</li>
+                ) : (
+                  notifications.filter((n) => n.isRead).map((item) => (
+                    <li key={item._id}>
+                      <NotificationCard item={item} onClick={() => handleMarkAsRead(item._id, item.isRead)} />
+                    </li>
+                  ))
+                )}
               </ul>
             </TabsContent>
           </Tabs>

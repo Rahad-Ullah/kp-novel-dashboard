@@ -1,11 +1,13 @@
 import Mybooks from '@/src/author/mybooks/Mybooks'
 import React from 'react'
+import { nextFetch } from "@/utils/nextFetch"
 
-function MyBooks() {
+async function MyBooks() {
+    const res = await nextFetch("/book/author")
+    const data = res.data || {}
+
     return (
-
-        <Mybooks />
-
+        <Mybooks initialData={data} />
     )
 }
 

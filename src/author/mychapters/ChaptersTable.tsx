@@ -14,8 +14,10 @@ import { useState } from "react"
 export type ChapterRow = {
     id: string
     title: string
+    bookId: string
     book: string
     chapter: string
+    chapterNumber: number
     words: number
     views: number
     likes: number
@@ -23,7 +25,9 @@ export type ChapterRow = {
     rating: number
     reviews: number
     submittedAt: Date
+    scheduledDate: string
     status: React.ReactNode
+    content?: string
     actions?: React.ReactNode
 }
 

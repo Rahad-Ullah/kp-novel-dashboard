@@ -22,6 +22,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 
 /** Predefined genres for the book form. */
@@ -36,6 +44,15 @@ export const BOOK_GENRES = [
     "Contemporary",
     "Young Adult",
     "Non-fiction",
+] as const
+
+export const BOOK_TAGS = [
+    "fantasy",
+    "romance",
+    "action",
+    "mystery",
+    "sci-fi",
+    "horror",
 ] as const
 
 export type BookFormType = "novel" | "short_stories"
@@ -65,7 +82,7 @@ export interface AddEditBookModalProps {
     /** Pre-fill fields (e.g. existing book). */
     initialValues?: AddEditBookInitialValues
     /** Called when the user confirms save with current field values. */
-    onSave?: (values: AddBookFormValues) => void
+    onSave?: (values: AddBookFormValues) => void | Promise<void>
     /** Optional hook for the header "+ Add Chapters" action. */
     onAddChapters?: () => void
 }
@@ -100,6 +117,7 @@ export default function AddEditBookModal({
     const [tagInput, setTagInput] = React.useState("")
     const [isDraggingCover, setIsDraggingCover] = React.useState(false)
     const [coverPreviewUrl, setCoverPreviewUrl] = React.useState<string | null>(null)
+    const [isSubmitting, setIsSubmitting] = React.useState(false)
 
     React.useEffect(() => {
         if (!open) return
@@ -124,6 +142,7 @@ export default function AddEditBookModal({
             setTagInput("")
             setCoverPreviewUrl(null)
         }
+        setIsSubmitting(false)
     }, [open, initialValues])
 
     const resolvedHeading = heading ?? (initialValues ? "Edit Book" : "Add New Book")
@@ -141,21 +160,34 @@ export default function AddEditBookModal({
 
     const onCoverFiles = (files: FileList | null) => {
         const f = files?.[0]
-        setCoverFile(f && f.type.startsWith("image/") ? f : coverFile)
+        if (f && f.type.startsWith("image/")) {
+            setCoverFile(f)
+            setCoverPreviewUrl(URL.createObjectURL(f))
+        }
     }
 
-    const handleSave = () => {
-        onSave?.({
-            title,
-            description,
-            coverFile,
-            existingCoverUrl: coverFile ? null : coverPreviewUrl,
-            type,
-            genre,
-            ageDemand,
-            tags,
-        })
-        onOpenChange(false)
+    const handleSave = async () => {
+        if (onSave) {
+            setIsSubmitting(true)
+            try {
+                await onSave({
+                    title,
+                    description,
+                    coverFile,
+                    existingCoverUrl: coverFile ? null : coverPreviewUrl,
+                    type,
+                    genre,
+                    ageDemand,
+                    tags,
+                })
+            } catch (e) {
+                console.error(e)
+            } finally {
+                setIsSubmitting(false)
+            }
+        } else {
+            onOpenChange(false)
+        }
     }
 
     const coverHint = coverFile
@@ -229,7 +261,7 @@ export default function AddEditBookModal({
                                     isDraggingCover && "border-[#5D33FF] bg-violet-50/50 dark:bg-violet-950/20"
                                 )}
                             >
-                                {coverPreviewUrl && !coverFile ? (
+                                {coverPreviewUrl ? (
                                     <Image
                                         src={coverPreviewUrl}
                                         alt=""
@@ -342,41 +374,43 @@ export default function AddEditBookModal({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor={tagId} className="text-xs font-medium text-muted-foreground">
-                                Tag
+                            <Label className="text-xs font-medium text-muted-foreground">
+                                Tags
                             </Label>
-                            <div className="relative">
-                                <Input
-                                    id={tagId}
-                                    value={tagInput}
-                                    onChange={(e) => setTagInput(e.target.value)}
-                                    placeholder="Enter tag e.g., #fantasy"
-                                    className={cn("h-10 pr-11", fieldShell)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            e.preventDefault()
-                                            addTagFromInput()
-                                        }
-                                    }}
-                                />
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon-sm"
-                                    className="absolute top-1/2 right-1.5 size-8 -translate-y-1/2 text-muted-foreground hover:text-gray-500"
-                                    aria-label="Add tag"
-                                    onClick={addTagFromInput}
-                                >
-                                    <SendHorizontalIcon className="size-4" />
-                                </Button>
-                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" className={cn("w-full justify-between h-10 font-normal", fieldShell)}>
+                                        {tags.length > 0 ? `${tags.length} selected` : "Select tags"}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56">
+                                    <DropdownMenuLabel>Available Tags</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    {BOOK_TAGS.map((tag) => (
+                                        <DropdownMenuCheckboxItem
+                                            key={tag}
+                                            checked={tags.includes(tag)}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setTags([...tags, tag])
+                                                } else {
+                                                    removeTag(tag)
+                                                }
+                                            }}
+                                            className="capitalize"
+                                        >
+                                            {tag}
+                                        </DropdownMenuCheckboxItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                             {tags.length > 0 ? (
                                 <div className="flex flex-wrap gap-2 pt-1">
                                     {tags.map((tag) => (
                                         <Badge
                                             key={tag}
                                             variant="secondary"
-                                            className="gap-1 pr-1 pl-2.5 font-normal"
+                                            className="gap-1 pr-1 pl-2.5 font-normal capitalize"
                                         >
                                             {tag}
                                             <button
@@ -403,8 +437,9 @@ export default function AddEditBookModal({
                         type="button"
                         className="bg-[#5D33FF] text-white hover:bg-[#5D33FF]/90"
                         onClick={handleSave}
+                        disabled={isSubmitting}
                     >
-                        Save Book
+                        {isSubmitting ? "Saving..." : "Save Book"}
                     </Button>
                 </div>
             </DialogContent>

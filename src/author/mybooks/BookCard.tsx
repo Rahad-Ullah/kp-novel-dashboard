@@ -1,21 +1,13 @@
 "use client"
 
-import { BookA, EyeIcon, PencilIcon, StarIcon, ThumbsUpIcon, Trash2Icon } from "lucide-react"
+import { EyeIcon, PencilIcon, StarIcon, ThumbsUpIcon, Trash2Icon } from "lucide-react"
 import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
 import {
     Card,
     CardContent,
-    CardHeader,
-    CardTitle,
 } from "@/components/ui/card"
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 export type BookCardProps = {
@@ -45,155 +37,100 @@ function BookCard({
     likes,
     views,
     onEdit,
-    onView,
-    onAddChapters,
     onDelete,
 }: BookCardProps) {
-    const statusChip =
-        status === "published"
-            ? "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400"
-            : " text-amber-700 dark:bg-amber-950/50 dark:text-amber-300"
+    const isPublished = status === "published"
 
     return (
-        <Card className="flex h-[clamp(360px,45vh,480px)] w-full flex-col gap-2 overflow-hidden rounded-2xl border border-border bg-white p-0 shadow-sm ring-0">
-            <CardHeader className="flex-[0_0_60%] overflow-hidden p-0">
-                <div className="relative h-full w-full">
-                    <Image
-                        src={coverImage}
-                        alt={title}
-                        width={150}
-                        height={200}
-                        sizes="(max-width: 768px) 100vw, 25vw"
-                        className="h-full w-full object-cover"
-                    />
-                </div>
-            </CardHeader>
+        <Card className="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+            {/* Image Header */}
+            <div className="relative h-[200px] w-full shrink-0 overflow-hidden bg-gray-100">
+                <Image
+                    src={coverImage}
+                    alt={title}
+                    fill
+                    unoptimized
+                    sizes="(max-width: 768px) 100vw, 20vw"
+                    className="object-cover"
+                />
+            </div>
 
-            <CardContent className="flex-1 space-y-2 overflow-hidden px-4">
-                <div className="flex items-start justify-between gap-3">
-                    <CardTitle className="line-clamp-1 text-[22px] leading-tight font-semibold text-gray-800">
+            {/* Content */}
+            <CardContent className="flex flex-1 flex-col p-4">
+                {/* Title and Status Row */}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                    <h3 className="line-clamp-1 text-base font-semibold text-gray-900" title={title}>
                         {title}
-                    </CardTitle>
+                    </h3>
                     <span
                         className={cn(
-                            "rounded-lg px-3 py-1 text-sm font-medium capitalize",
-                            statusChip
+                            "shrink-0 rounded px-2 py-0.5 text-xs font-medium capitalize",
+                            isPublished
+                                ? "bg-green-50 text-green-700"
+                                : "bg-orange-50 text-orange-600"
                         )}
                     >
                         {status}
                     </span>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                    {genres.map((genre) => (
+
+                {/* Genres */}
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                    {genres.slice(0, 3).map((genre) => (
                         <span
                             key={genre}
-                            className="rounded-full bg-purple-100 px-3 py-0.5 text-sm text-purple-700"
+                            className="rounded-full bg-purple-50 px-2.5 py-0.5 text-[11px] font-medium text-purple-700"
                         >
                             {genre}
                         </span>
                     ))}
+                    {genres.length > 3 && (
+                        <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-medium text-gray-600">
+                            +{genres.length - 3}
+                        </span>
+                    )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <StarIcon className="size-5 fill-yellow-400 text-yellow-400" />
-                    <span className="text-xl font-semibold text-gray-800">
-                        {rating.toFixed(1)}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                        {reviews.toLocaleString()} reviews
-                    </span>
+                {/* Rating & Reviews */}
+                <div className="flex items-center gap-1.5 mb-3">
+                    <StarIcon className="size-4 fill-yellow-400 text-yellow-400" />
+                    <span className="text-sm font-medium text-gray-900">{rating.toFixed(1)}</span>
+                    <span className="text-sm text-gray-500 ml-1">{reviews.toLocaleString()} reviews</span>
                 </div>
 
-                <div className="text-sidebar-primary flex items-center justify-between gap-3 text-base">
+                {/* Stats */}
+                <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
                     <span>{chapters} chapters</span>
                     <div className="flex items-center gap-1.5">
-                        <ThumbsUpIcon className="size-5" />
-                        <span className="text-sm text-muted-foreground">
-                            {likes.toLocaleString()}
-                        </span>
+                        <ThumbsUpIcon className="size-4" />
+                        <span>{likes.toLocaleString()}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <EyeIcon className="size-5" />
-                        <span className="text-sm text-muted-foreground">
-                            {views.toLocaleString()}
-                        </span>
+                        <EyeIcon className="size-4" />
+                        <span>{views.toLocaleString()}</span>
                     </div>
                 </div>
+
+                {/* Action Buttons */}
+                <div className="mt-auto flex items-center gap-3">
+                    <Button
+                        variant="outline"
+                        className="h-10 flex-1 border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 font-normal rounded-xl"
+                        onClick={onEdit}
+                    >
+                        <PencilIcon className="mr-2 size-4" />
+                        Edit
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10 shrink-0 border-red-100 bg-white text-red-400 hover:bg-red-50 hover:text-red-500 rounded-xl"
+                        onClick={onDelete}
+                    >
+                        <Trash2Icon className="size-4" />
+                    </Button>
+                </div>
             </CardContent>
-
-            <div className="flex items-center gap-3 border-t-0 bg-transparent px-4 pt-2 pb-4">
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="h-10 flex-1 rounded-xl border-border/30 bg-transparent text-muted-foreground hover:bg-transparent hover:text-gray-800"
-                                onClick={onEdit}
-                            >
-                                <PencilIcon className="mr-2 size-5" />
-
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Edit book</p>
-                        </TooltipContent>
-                    </Tooltip>
-
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="h-10 flex-1 rounded-xl border-border/30 bg-transparent text-muted-foreground hover:bg-transparent hover:text-gray-800 disabled:opacity-50"
-                                onClick={onAddChapters}
-                                disabled={!onAddChapters}
-                            >
-                                <BookA className="mr-2 size-5" />
-
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Add or manage chapters</p>
-                        </TooltipContent>
-                    </Tooltip>
-
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="h-10 flex-1 rounded-xl border-border/30 bg-transparent text-muted-foreground hover:bg-transparent hover:text-gray-800"
-                                onClick={onView}
-                            >
-                                <EyeIcon className="mr-2 size-5" />
-
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>View book details</p>
-                        </TooltipContent>
-                    </Tooltip>
-
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="icon-lg"
-                                className="h-10 w-12 rounded-xl border-red-200 bg-red-50 text-red-500 hover:bg-red-50 hover:text-red-600"
-                                onClick={onDelete}
-                                aria-label="Delete book"
-                            >
-                                <Trash2Icon className="size-5" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Delete book</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            </div>
         </Card>
     )
 }

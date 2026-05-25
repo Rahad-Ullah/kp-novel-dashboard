@@ -101,6 +101,15 @@ function Login() {
         if (remember) {
           localStorage.setItem("remember", "true");
         }
+        
+        // Save the token to cookies so getToken() can access it on the server
+        if (res.data?.accessToken) {
+          document.cookie = `accessToken=${res.data.accessToken}; path=/; max-age=86400; SameSite=Lax`;
+        }
+        if (res.data?.refreshToken) {
+          document.cookie = `refreshToken=${res.data.refreshToken}; path=/; max-age=604800; SameSite=Lax`;
+        }
+
         router.push(`/${res?.data?.userData?.role}/dashboard`);
       } else {
         toast.error(res.message, { id: "login" });
