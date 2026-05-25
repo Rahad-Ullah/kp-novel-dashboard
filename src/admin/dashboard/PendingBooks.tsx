@@ -1,26 +1,20 @@
-import React from 'react'
-import PendingListCard, { type PendingItem } from './PendingListCard'
+import PendingListCard from "./PendingListCard";
 
-const pendingBooks: PendingItem[] = [
-    {
-        title: 'The Chronicles of Eternity_1',
-        subtitle: 'by Sarah Mitchell  •  Fantasy',
-        time: 'about 12 hours ago',
-    },
-    {
-        title: 'The Chronicles of Eternity_2',
-        subtitle: 'by Sarah Mitchell  •  Fantasy',
-        time: 'about 12 hours ago',
-    },
-    {
-        title: 'The Chronicles of Eternity_3',
-        subtitle: 'by Sarah Mitchell  •  Fantasy',
-        time: 'about 12 hours ago',
-    },
-]
-
-function PendingBooks() {
-    return <PendingListCard heading="Pending Books" count={3} items={pendingBooks} />
+function PendingBooks({ data }: { data: any }) {
+  const pendingBooks = data?.map((book: any) => ({
+    title: book.title,
+    description: book.description,
+    type: book.type,
+    image: book.coverImage,
+    id: book._id,
+  }));
+  return (
+    <PendingListCard
+      heading="Pending Books"
+      count={data?.length}
+      items={pendingBooks}
+    />
+  );
 }
 
-export default PendingBooks
+export default PendingBooks;

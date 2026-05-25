@@ -1,21 +1,21 @@
-import React from 'react'
-import PendingListCard, { type PendingItem } from './PendingListCard'
+import PendingListCard from "./PendingListCard";
 
-const pendingChapters: PendingItem[] = [
-    {
-        title: 'The Lost Kingdom - Ch. 24',
-        subtitle: 'by Michael Brown',
-        time: 'in about 3 hours',
-    },
-    {
-        title: 'The Lost Kingdom - Ch. 25',
-        subtitle: 'by Michael Brown',
-        time: 'in about 3 hours',
-    },
-]
+function PendingChapters({ data }: { data: any }) {
+  const pendingChapters = data?.map((chapter: any) => ({
+    title: chapter.title,
+    description: chapter.description,
+    type: chapter.type,
+  }));
 
-function PendingChapters() {
-    return <PendingListCard heading="Pending Chapters" count={2} items={pendingChapters} />
+  return (
+    <div>
+      <PendingListCard
+        heading="Pending Chapters"
+        count={data?.length}
+        items={pendingChapters}
+      />
+    </div>
+  );
 }
 
-export default PendingChapters
+export default PendingChapters;
