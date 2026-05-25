@@ -1,9 +1,7 @@
 import Comments from '@/src/author/comments/Comments'
 
 function AuthorCommentsPage() {
-    return (
-        <Comments />
-    )
+    return <Comments data={[]} meta={{}} />;
 }
 
 export default AuthorCommentsPage

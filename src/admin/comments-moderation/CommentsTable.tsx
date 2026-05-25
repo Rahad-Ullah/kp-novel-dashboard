@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { useState } from "react";
 import PageLimit from "@/components/common/pagelimit/PageLimit";
 import {
   Table,
@@ -12,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useUpdateSearchParams } from "@/hooks/useUpdateSearchParams";
 
 type CommentRow = {
   id: string;
@@ -22,87 +22,16 @@ type CommentRow = {
   status: "Normal" | "Reported";
 };
 
-const initialComments: CommentRow[] = [
-  {
-    id: "1",
-    user: "Chen Wei",
-    bookTitle: "The Immortal's Path",
-    comment:
-      "This is an amazing chapter! Can't wait for the next one!",
-    posted: "1 day ago",
-    status: "Normal",
-  },
-  {
-    id: "2",
-    user: "Chen Wei",
-    bookTitle: "The Immortal's Path",
-    comment:
-      "This is an amazing chapter! Can't wait for the next one!",
-    posted: "1 day ago",
-    status: "Reported",
-  },
-  {
-    id: "3",
-    user: "Chen Wei",
-    bookTitle: "The Immortal's Path",
-    comment:
-      "This is an amazing chapter! Can't wait for the next one!",
-    posted: "1 day ago",
-    status: "Normal",
-  },
-  {
-    id: "4",
-    user: "Chen Wei",
-    bookTitle: "The Immortal's Path",
-    comment:
-      "This is an amazing chapter! Can't wait for the next one!",
-    posted: "1 day ago",
-    status: "Normal",
-  },
-  {
-    id: "5",
-    user: "Chen Wei",
-    bookTitle: "The Immortal's Path",
-    comment:
-      "This is an amazing chapter! Can't wait for the next one!",
-    posted: "1 day ago",
-    status: "Reported",
-  },
-  {
-    id: "6",
-    user: "Chen Wei",
-    bookTitle: "The Immortal's Path",
-    comment:
-      "This is an amazing chapter! Can't wait for the next one!",
-    posted: "1 day ago",
-    status: "Normal",
-  },
-  {
-    id: "7",
-    user: "Chen Wei",
-    bookTitle: "The Immortal's Path",
-    comment:
-      "This is an amazing chapter! Can't wait for the next one!",
-    posted: "1 day ago",
-    status: "Normal",
-  },
-  {
-    id: "8",
-    user: "Chen Wei",
-    bookTitle: "The Immortal's Path",
-    comment:
-      "This is an amazing chapter! Can't wait for the next one!",
-    posted: "1 day ago",
-    status: "Reported",
-  },
-];
-
-function CommentsTable() {
+function CommentsTable({ data, meta }: { data: any; meta: any }) {
+  const updateSearchParams = useUpdateSearchParams();
+  const initialComments = data.map((item: any) => ({
+    id: item._id,
+    user: item.userId.fullName,
+    bookTitle: item.bookId.title,
+    comment: item.message,
+    posted: item.createdAt,
+  }));
   const [rows, setRows] = useState<CommentRow[]>(() => [...initialComments]);
-
-  function deleteRow(id: string) {
-    setRows((prev) => prev.filter((r) => r.id !== id));
-  }
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
@@ -120,12 +49,6 @@ function CommentsTable() {
             </TableHead>
             <TableHead className="w-[12%] text-base font-medium text-gray-800">
               Posted
-            </TableHead>
-            <TableHead className="w-[12%] text-base font-medium text-gray-800">
-              Status
-            </TableHead>
-            <TableHead className="w-[10%] pr-6 text-center text-base font-medium text-gray-800">
-              Action
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -148,9 +71,13 @@ function CommentsTable() {
                 </p>
               </TableCell>
               <TableCell className="py-4 align-top text-sm text-gray-500 whitespace-nowrap">
-                {row.posted}
+                {new Date(row.posted).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
               </TableCell>
-              <TableCell className="py-4 align-top">
+              {/* <TableCell className="py-4 align-top">
                 <span
                   className={
                     row.status === "Normal"
@@ -160,8 +87,8 @@ function CommentsTable() {
                 >
                   {row.status}
                 </span>
-              </TableCell>
-              <TableCell className="pr-6 py-4 align-top">
+              </TableCell> */}
+              {/* <TableCell className="pr-6 py-4 align-top">
                 <div className="flex justify-center">
                   <button
                     type="button"
@@ -172,7 +99,7 @@ function CommentsTable() {
                     <Trash2 className="size-4" strokeWidth={1.75} />
                   </button>
                 </div>
-              </TableCell>
+              </TableCell> */}
             </TableRow>
           ))}
         </TableBody>
@@ -181,8 +108,17 @@ function CommentsTable() {
           <TableRow className="border-0 hover:bg-transparent">
             <TableCell colSpan={6} className="px-6 py-4">
               <PageLimit
-                pagination={{ page: 1, pageSize: 12, totalCount: 120 }}
-                onPaginationChange={() => {}}
+                pagination={{
+                  page: Number(meta.page),
+                  pageSize: Number(meta.limit),
+                  totalCount: Number(meta.total),
+                }}
+                onPaginationChange={(pagination) => {
+                  updateSearchParams({
+                    page: pagination.page.toString(),
+                    limit: pagination.pageSize.toString(),
+                  });
+                }}
                 itemLabel="comments"
                 mode="summary"
               />

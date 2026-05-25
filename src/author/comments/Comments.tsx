@@ -137,78 +137,74 @@ function Comments({ data, meta }: { data: any; meta: any }) {
     }, [])
 
     return (
-        <div className="space-y-4">
-            <SmallPageInfo
-                title="Comments"
-                description="Read and respond to reader feedback"
+      <div className="space-y-4">
+        <SmallPageInfo
+          title="Comments"
+          description="Read and respond to reader feedback"
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 2xl:w-1/2">
+          {stats.map((stat) => (
+            <Stats
+              key={stat.title}
+              title={stat.title}
+              value={stat.value}
+              icon={stat.icon}
+              iconColor={stat.iconColor}
+              iconBackgroundColor={stat.iconBackgroundColor}
             />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 2xl:w-1/2">
-                {stats.map((stat) => (
-                    <Stats
-                        key={stat.title}
-                        title={stat.title}
-                        value={stat.value}
-                        icon={stat.icon}
-                        iconColor={stat.iconColor}
-                        iconBackgroundColor={stat.iconBackgroundColor}
-                    />
-                ))}
-            </div>
-
-            <Tabs
-                defaultValue="all"
-                className=" w-full"
-            >
-                <TabsList className="bg-linear-to-r from-violet-500 to-indigo-500 w-fit">
-                    <TabsTrigger
-                        value="all"
-                        className="text-gray-100 data-active:bg-linear-to-r from-green-500 to-lime-500"
-                    >
-                        All Comments
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="needs-reply"
-                        className="text-gray-100 data-active:bg-linear-to-r from-yellow-500 to-orange-500"
-                    >
-                        Needs Reply
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="total-likes"
-                        className="text-gray-100 data-active:bg-linear-to-r from-pink-500 to-red-500"
-                    >
-                        Liked Comments
-                    </TabsTrigger>
-                    {userType === "super_admin" && (
-                        <TabsTrigger
-                            value="review-comments"
-                            className="text-gray-100 data-active:bg-linear-to-r from-blue-500 to-indigo-500"
-                        >
-                            Review Comments
-                        </TabsTrigger>
-                    )}
-                </TabsList>
-
-                <div className="w-full">
-                    <TabsContent value="all">
-                        <CommentList rows={all} />
-                    </TabsContent>
-                    <TabsContent value="needs-reply">
-                        <CommentList rows={needsReply} />
-                    </TabsContent>
-                    <TabsContent value="total-likes">
-                        <CommentList rows={totalLikes} />
-                    </TabsContent>
-                    {userType === "super_admin" && (
-                        <TabsContent value="review-comments">
-                            <CommentsTable />
-                        </TabsContent>
-                    )}
-                </div>
-
-            </Tabs>
+          ))}
         </div>
-    )
+
+        <Tabs defaultValue="all" className=" w-full">
+          <TabsList className="bg-linear-to-r from-violet-500 to-indigo-500 w-fit">
+            <TabsTrigger
+              value="all"
+              className="text-gray-100 data-active:bg-linear-to-r from-green-500 to-lime-500"
+            >
+              All Comments
+            </TabsTrigger>
+            <TabsTrigger
+              value="needs-reply"
+              className="text-gray-100 data-active:bg-linear-to-r from-yellow-500 to-orange-500"
+            >
+              Needs Reply
+            </TabsTrigger>
+            <TabsTrigger
+              value="total-likes"
+              className="text-gray-100 data-active:bg-linear-to-r from-pink-500 to-red-500"
+            >
+              Liked Comments
+            </TabsTrigger>
+            {userType === "super_admin" && (
+              <TabsTrigger
+                value="review-comments"
+                className="text-gray-100 data-active:bg-linear-to-r from-blue-500 to-indigo-500"
+              >
+                Review Comments
+              </TabsTrigger>
+            )}
+          </TabsList>
+
+          <div className="w-full">
+            <TabsContent value="all">
+              <CommentList rows={all} />
+            </TabsContent>
+            <TabsContent value="needs-reply">
+              <CommentList rows={needsReply} />
+            </TabsContent>
+            <TabsContent value="total-likes">
+              <CommentList rows={totalLikes} />
+            </TabsContent>
+            {userType === "super_admin" && (
+              <TabsContent value="review-comments">
+                <CommentsTable data={data} meta={meta} />
+              </TabsContent>
+            )}
+          </div>
+        </Tabs>
+      </div>
+    );
 }
 
 export default Comments
