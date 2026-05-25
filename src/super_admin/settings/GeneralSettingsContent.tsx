@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { FileText, ImageIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { nextFetch } from "@/utils/nextFetch";
 
 function SettingRowCard({
   icon,
@@ -45,7 +47,60 @@ function SettingRowCard({
   );
 }
 
-export function GeneralSettingsContent() {
+export function GeneralSettingsContent({ data }: { data: any }) {
+  const [logo, setLogo] = useState(data?.logo);
+  const [platformName, setPlatformName] = useState(data?.platformName);
+
+  const handleLogoChange = async () => {
+    toast.loading("Updating logo...", {
+      id: "logo",
+    });
+    try {
+      const res = await nextFetch(`/setting`, {
+        method: "PATCH",
+        body: { logo },
+      });
+      if (res?.success) {
+        toast.success("Logo updated successfully", {
+          id: "logo",
+        });
+      } else {
+        toast.error(res?.message, {
+          id: "logo",
+        });
+      }
+    } catch (error) {
+      toast.error("Failed to update logo", {
+        id: "logo",
+      });
+    }
+  };
+
+  const handlePlatformNameChange = async () => {
+    toast.loading("Updating platform name...", {
+      id: "platformName",
+    });
+    try {
+      const res = await nextFetch(`/setting`, {
+        method: "PATCH",
+        body: { platformName },
+      });
+      if (res?.success) {
+        toast.success("Platform name updated successfully", {
+          id: "platformName",
+        });
+      } else {
+        toast.error(res?.message, {
+          id: "platformName",
+        });
+      }
+    } catch (error) {
+      toast.error("Failed to update platform name", {
+        id: "platformName",
+      });
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Card className="rounded-xl border border-gray-200 bg-white py-5 shadow-none ring-0">
@@ -66,17 +121,18 @@ export function GeneralSettingsContent() {
         description="Primary logo used in navigation and marketing"
         field={
           <Input
-            readOnly
-            value="/uploads/kpnovel-logo.svg"
+            value={logo}
+            onChange={(e) => setLogo(e.target.value)}
             className="h-10 rounded-lg border-gray-200 bg-gray-50 text-gray-700"
           />
         }
         action={
           <Button
             type="button"
+            onClick={handleLogoChange}
             className="h-10 rounded-lg bg-blue-600 px-5 text-white hover:bg-blue-700"
           >
-            Upload Logo
+            Save
           </Button>
         }
       />
@@ -87,14 +143,15 @@ export function GeneralSettingsContent() {
         description="Displayed in page titles and headers"
         field={
           <Input
-            readOnly
-            value="KPnovel"
+            value={platformName}
+            onChange={(e) => setPlatformName(e.target.value)}
             className="h-10 rounded-lg border-gray-200 bg-gray-50 text-gray-700"
           />
         }
         action={
           <Button
             type="button"
+            onClick={handlePlatformNameChange}
             className="h-10 rounded-lg bg-blue-600 px-5 text-white hover:bg-blue-700"
           >
             Save

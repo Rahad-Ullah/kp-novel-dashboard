@@ -21,16 +21,12 @@ const BAR_FILL = "#6332BB";
 const GRID_STROKE = "#E5E7EB";
 const TICK_COLOR = "#9CA3AF";
 
-const chartData = [
-  { category: "Fantasy", books: 12000 },
-  { category: "Romance", books: 18000 },
-  { category: "Action", books: 25000 },
-  { category: "Mystery", books: 32000 },
-  { category: "Sci-Fi", books: 41000 },
-  { category: "Horror", books: 55000 },
-];
+function BooksByCategory({ data }: { data: any }) {
+  const chartData = data?.map((item: any) => ({
+    category: item.tag,
+    books: item.count,
+  }));
 
-function BooksByCategory() {
   return (
     <Card className="rounded-xl border border-violet-200/60 bg-white shadow-xs">
       <CardHeader className="px-6 pb-2 pt-6">

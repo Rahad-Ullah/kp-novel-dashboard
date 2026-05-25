@@ -73,10 +73,10 @@ function ContentModerationLayout({ data, meta }: { data: any; meta: any }) {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="book">
-          <BookTable data={data} meta={meta} />
+          <BookTable data={data?.data} meta={meta} />
         </TabsContent>
         <TabsContent value="chapter">
-          <ChaptersTable data={data} meta={meta} />
+          <ChaptersTable data={data?.data} meta={meta} />
         </TabsContent>
       </Tabs>
     </div>

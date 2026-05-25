@@ -10,7 +10,7 @@ import { GeneralSettingsContent } from "./GeneralSettingsContent";
 import { LegalDocumentsContent } from "./LegalDocumentsContent";
 import FaqContent from "./FaqContent";
 
-function SettingsLayout() {
+function SettingsLayout({ data, faqData }: { data: any; faqData: any }) {
   return (
     <div className="space-y-6">
       <div>
@@ -43,14 +43,13 @@ function SettingsLayout() {
         </TabsList>
 
         <TabsContent value="general" className="mt-0 outline-none">
-          <GeneralSettingsContent />
+          <GeneralSettingsContent data={data} />
         </TabsContent>
-
         <TabsContent value="legal" className="mt-0 outline-none">
-          <LegalDocumentsContent />
+          <LegalDocumentsContent data={data} />
         </TabsContent>
         <TabsContent value="faq" className="mt-0 outline-none">
-          <FaqContent />
+          <FaqContent faqData={faqData} />
         </TabsContent>
       </Tabs>
     </div>

@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { nextFetch } from "@/utils/nextFetch";
+import { setCookie } from "cookies-next";
 
 function normalizeEmail(value: string) {
     return value.trim().toLowerCase();
@@ -98,6 +98,8 @@ function Login() {
       });
       if (res.success) {
         toast.success(res.message, { id: "login" });
+        setCookie("accessToken", res?.data?.accessToken);
+        setCookie("refreshToken", res?.data?.refreshToken);
         if (remember) {
           localStorage.setItem("remember", "true");
         }

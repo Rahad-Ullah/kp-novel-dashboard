@@ -17,11 +17,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { clearStoredUserRole } from "@/lib/auth-storage"
-import { ChevronsUpDownIcon, BadgeCheckIcon, BellIcon, LogOutIcon } from "lucide-react"
-import { useRouter } from "next/navigation"
+} from "@/components/ui/sidebar";
+import {
+  ChevronsUpDownIcon,
+  BadgeCheckIcon,
+  BellIcon,
+  LogOutIcon,
+} from "lucide-react";
 import { toast } from "sonner"
+import { deleteCookie } from "cookies-next";
 
 export function NavUser({
   user,
@@ -33,7 +37,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
-  const router = useRouter()
+  console.log(user);
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -87,9 +91,10 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => {
-              toast.success("Logged out successfully")
-              clearStoredUserRole()
-              router.push("/auth/login")
+              toast.success("Logged out successfully");
+              deleteCookie("accessToken");
+              deleteCookie("refreshToken");
+              window.location.replace("/auth/login");
             }}>
               <LogOutIcon
               />
