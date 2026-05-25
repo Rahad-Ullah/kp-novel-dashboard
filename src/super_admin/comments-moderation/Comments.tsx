@@ -10,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trash2 } from "lucide-react";
 
 function Comments({ data, meta }: { data: any; meta: any }) {
 
@@ -52,10 +51,10 @@ function Comments({ data, meta }: { data: any; meta: any }) {
                 Posted
               </TableHead>
               <TableHead className="w-[12%] text-base font-medium text-gray-800">
-                Status
+                Likes
               </TableHead>
-              <TableHead className="w-[10%] pr-6 text-center text-base font-medium text-gray-800">
-                Action
+              <TableHead className="w-[12%] text-base font-medium text-gray-800">
+                Status
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -63,35 +62,42 @@ function Comments({ data, meta }: { data: any; meta: any }) {
           <TableBody>
             {data.map((row: any) => (
               <TableRow
-                key={row.id}
+                key={row._id}
                 className="border-b border-gray-100 hover:bg-gray-50/50"
               >
                 <TableCell className="pl-6 py-4 align-top text-sm text-gray-500">
-                  {row.user}
+                  {row.userId?.fullName}
                 </TableCell>
                 <TableCell className="py-4 align-top text-sm font-semibold text-gray-900">
-                  {row.bookTitle}
+                  {row.bookId?.title}
                 </TableCell>
                 <TableCell className="py-4 align-top text-sm text-gray-500">
                   <p className="max-w-full wrap-break-word leading-relaxed line-clamp-3 md:line-clamp-none">
-                    {row.comment}
+                    {row.message}
                   </p>
                 </TableCell>
                 <TableCell className="py-4 align-top text-sm text-gray-500 whitespace-nowrap">
-                  {row.posted}
+                  {new Date(row.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </TableCell>
+                <TableCell className="py-4 align-top text-sm text-gray-500 whitespace-nowrap">
+                  {row.likes?.length}
                 </TableCell>
                 <TableCell className="py-4 align-top">
                   <span
                     className={
-                      row.status === "Normal"
+                      row.isDeleted === false
                         ? "inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700"
                         : "inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700"
                     }
                   >
-                    {row.status}
+                    {row.isDeleted ? "Deleted" : "Active"}
                   </span>
                 </TableCell>
-                <TableCell className="pr-6 py-4 align-top">
+                {/* <TableCell className="pr-6 py-4 align-top">
                   <div className="flex justify-center">
                     <button
                       type="button"
@@ -102,7 +108,7 @@ function Comments({ data, meta }: { data: any; meta: any }) {
                       <Trash2 className="size-4" strokeWidth={1.75} />
                     </button>
                   </div>
-                </TableCell>
+                </TableCell> */}
               </TableRow>
             ))}
           </TableBody>
@@ -111,7 +117,7 @@ function Comments({ data, meta }: { data: any; meta: any }) {
             <TableRow className="border-0 hover:bg-transparent">
               <TableCell colSpan={6} className="px-6 py-4">
                 <PageLimit
-                  pagination={{ page: 1, pageSize: 12, totalCount: 120 }}
+                  pagination={{ page: meta.page, pageSize: meta.limit, totalCount: meta.total }}
                   onPaginationChange={() => {}}
                   itemLabel="comments"
                   mode="summary"
