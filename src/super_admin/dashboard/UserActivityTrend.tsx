@@ -21,16 +21,13 @@ const LINE_COLOR = "#0066FF";
 const GRID_STROKE = "#E5E7EB";
 const AXIS_STROKE = "#6B7280";
 
-const chartData = [
-  { month: "Jan", value: 1200 },
-  { month: "Feb", value: 1800 },
-  { month: "Mar", value: 2400 },
-  { month: "Apr", value: 3200 },
-  { month: "May", value: 4100 },
-  { month: "Jun", value: 5400 },
-];
+function UserActivityTrend({ data }: { data: any }) {
+  
+  const chartData = data?.map((item: any) => ({
+    month: item.month,
+    value: item.count,
+  }));
 
-function UserActivityTrend() {
   return (
     <Card className="rounded-xl border border-slate-200/80 bg-white shadow-xs">
       <CardHeader className="px-6 pb-2 pt-6">

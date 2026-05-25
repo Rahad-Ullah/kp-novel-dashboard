@@ -7,53 +7,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-type TopBookRow = {
-  title: string;
-  author: string;
-  viewsLabel: string;
-  votes: number;
-};
-
-const rows: TopBookRow[] = [
-  {
-    title: "The Immortal's Path",
-    author: "John Smith",
-    viewsLabel: "2.3 M",
-    votes: 12548,
-  },
-  {
-    title: "The Immortal's Path",
-    author: "John Smith",
-    viewsLabel: "2.1 M",
-    votes: 11203,
-  },
-  {
-    title: "The Immortal's Path",
-    author: "John Smith",
-    viewsLabel: "1.9 M",
-    votes: 9876,
-  },
-  {
-    title: "The Immortal's Path",
-    author: "John Smith",
-    viewsLabel: "1.6 M",
-    votes: 8421,
-  },
-  {
-    title: "The Immortal's Path",
-    author: "John Smith",
-    viewsLabel: "1.4 M",
-    votes: 7650,
-  },
-  {
-    title: "The Immortal's Path",
-    author: "John Smith",
-    viewsLabel: "1.2 M",
-    votes: 6892,
-  },
-];
-
-function TopPerformingBooks() {
+function TopPerformingBooks({ data }: { data: any }) {
+  const rows = data?.map((item: any) => ({
+    title: item.title,
+    author: item.userId.fullName,
+    viewsLabel: item.readCount,
+    votes: item.voteCount,
+  }));
   return (
     <Card className="rounded-xl border border-indigo-100 bg-white shadow-xs">
       <CardHeader className="px-6 pb-4 pt-6">
@@ -80,7 +40,7 @@ function TopPerformingBooks() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, i) => (
+            {rows.map((row: any, i: number) => (
               <tr
                 key={`${row.title}-${i}`}
                 className="border-b border-gray-100 last:border-b-0"
