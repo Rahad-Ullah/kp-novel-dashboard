@@ -3,9 +3,8 @@ export type LegalDocStatus = "published" | "draft"
 export type LegalDocumentRow = {
   id: string
   title: string
-  status: LegalDocStatus
-  lastUpdated: string
-  wordCount: number
+  slug: string
+  status: string
   /** Rich HTML body (TipTap / stored legal copy). */
   bodyHtml: string
 }

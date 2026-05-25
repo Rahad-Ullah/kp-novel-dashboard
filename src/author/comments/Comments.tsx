@@ -69,7 +69,7 @@ function CommentList({ rows }: { rows: CommentRow[] }) {
     )
 }
 
-function Comments() {
+function Comments({data, meta}: {data: any, meta: any}) {
     const comments: CommentRow[] = [
         {
             id: "c1",

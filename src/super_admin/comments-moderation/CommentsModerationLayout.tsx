@@ -1,10 +1,7 @@
 import Comments from '@/src/author/comments/Comments'
-import React from 'react'
 
-function CommentsModerationLayout() {
-    return (
-        <Comments />
-    )
+function CommentsModerationLayout({ data, meta }: { data: any; meta: any }) {
+  return <Comments data={data} meta={meta} />;
 }
 
 export default CommentsModerationLayout

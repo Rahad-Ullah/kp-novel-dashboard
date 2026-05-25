@@ -17,6 +17,9 @@ import LegalDocumentViewEditModal, {
   type LegalDocumentModalMode,
 } from "./LegalDocumentViewEditModal"
 import type { LegalDocStatus, LegalDocumentRow } from "./legal-documents.types"
+import { nextFetch } from "@/utils/nextFetch";
+import { toast } from "sonner";
+import { revalidate } from "@/utils/revalidateTag";
 
 export type { LegalDocumentRow, LegalDocStatus } from "./legal-documents.types"
 
@@ -25,41 +28,6 @@ function countWordsFromHtml(html: string): number {
   if (!text) return 0
   return text.split(/\s+/).length
 }
-
-const initialDocuments: LegalDocumentRow[] = [
-  {
-    id: "1",
-    title: "Terms of Service",
-    status: "published",
-    lastUpdated: "2025-03-15",
-    wordCount: 2840,
-    bodyHtml: `<h2>Terms of Service</h2><p>These terms govern your use of our platform. By accessing or using the service, you agree to be bound by this agreement.</p><p><strong>1. Acceptance of terms</strong></p><p>You must read and accept these terms before using any feature that collects or processes personal data.</p><p><strong>2. Changes</strong></p><p>We may update these terms from time to time. Continued use after changes constitutes acceptance.</p>`,
-  },
-  {
-    id: "2",
-    title: "Privacy Policy",
-    status: "published",
-    lastUpdated: "2025-03-10",
-    wordCount: 1920,
-    bodyHtml: `<h2>Privacy Policy</h2><p>We respect your privacy. This policy describes how we collect, use, and protect your information.</p><ul><li>What data we collect</li><li>How we use it</li><li>Your rights and choices</li></ul><p>For questions, contact our data protection contact.</p>`,
-  },
-  {
-    id: "3",
-    title: "Copy Right Notice",
-    status: "draft",
-    lastUpdated: "2025-02-28",
-    wordCount: 856,
-    bodyHtml: `<h2>Copy Right Notice</h2><p><em>Draft — content in progress.</em></p><p>This is the copy right notice for the platform.</p>`,
-  },
-  {
-    id: "4",
-    title: "About Us",
-    status: "published",
-    lastUpdated: "2025-01-20",
-    wordCount: 412,
-    bodyHtml: `<h2>About us</h2><p>We build tools for authors and readers. Our mission is to make publishing accessible and fair.</p><blockquote><p>Storytelling connects the world.</p></blockquote>`,
-  },
-]
 
 function statusBadge(status: LegalDocStatus) {
   if (status === "published") {
@@ -70,7 +38,7 @@ function statusBadge(status: LegalDocStatus) {
       >
         published
       </Badge>
-    )
+    );
   }
   return (
     <Badge
@@ -79,45 +47,93 @@ function statusBadge(status: LegalDocStatus) {
     >
       draft
     </Badge>
-  )
+  );
 }
 
-export function LegalDocumentsContent() {
+export function LegalDocumentsContent({ data }: { data: any }) {
+  const initialDocuments: LegalDocumentRow[] = [
+    {
+      id: "1",
+      title: "Terms of Service",
+      slug: "termsOfService",
+      status: "published",
+      bodyHtml: data?.termsOfService,
+    },
+    {
+      id: "2",
+      title: "Privacy Policy",
+      slug: "privacyPolicy",
+      status: "published",
+      bodyHtml: data?.privacyPolicy,
+    },
+    {
+      id: "3",
+      title: "Support",
+      slug: "support",
+      status: "published",
+      bodyHtml: data?.support,
+    },
+    {
+      id: "4",
+      title: "About Us",
+      slug: "aboutUs",
+      status: "published",
+      bodyHtml: data?.aboutUs,
+    },
+  ];
+
   const [documents, setDocuments] =
-    React.useState<LegalDocumentRow[]>(initialDocuments)
-  const [modalOpen, setModalOpen] = React.useState(false)
+    React.useState<LegalDocumentRow[]>(initialDocuments);
+  const [modalOpen, setModalOpen] = React.useState(false);
   const [activeDoc, setActiveDoc] = React.useState<LegalDocumentRow | null>(
-    null
-  )
+    null,
+  );
   const [modalMode, setModalMode] =
-    React.useState<LegalDocumentModalMode>("view")
+    React.useState<LegalDocumentModalMode>("view");
 
   const openModal = (doc: LegalDocumentRow, mode: LegalDocumentModalMode) => {
-    setActiveDoc(doc)
-    setModalMode(mode)
-    setModalOpen(true)
-  }
+    setActiveDoc(doc);
+    setModalMode(mode);
+    setModalOpen(true);
+  };
 
   const handleModalOpenChange = (open: boolean) => {
-    setModalOpen(open)
-    if (!open) setActiveDoc(null)
-  }
+    setModalOpen(open);
+    if (!open) setActiveDoc(null);
+  };
 
-  const handleSave = (docId: string, bodyHtml: string) => {
-    const today = new Date().toISOString().slice(0, 10)
+  const handleSave = async (docType: string, bodyHtml: string) => {
     setDocuments((prev) =>
-      prev.map((d) =>
-        d.id === docId
-          ? {
-            ...d,
-            bodyHtml,
-            wordCount: countWordsFromHtml(bodyHtml),
-            lastUpdated: today,
-          }
-          : d
-      )
-    )
-  }
+      prev.map((doc) => (doc.slug === docType ? { ...doc, bodyHtml } : doc)),
+    );
+
+    toast.loading("Updating...", {
+      id: "legal-document-update",
+    });
+    try {
+      const res = await nextFetch(`/setting`, {
+        method: "PATCH",
+        body: {
+          [docType]: bodyHtml,
+        },
+      });
+      if (res.success) {
+        revalidate("settings");
+        toast.success("Updated successfully", {
+          id: "legal-document-update",
+        });
+      } else {
+        toast.error("Failed to update legal document", {
+          id: "legal-document-update",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update legal document", {
+        id: "legal-document-update",
+      });
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -148,12 +164,8 @@ export function LegalDocumentsContent() {
                   <span className="font-semibold text-gray-900">
                     {doc.title}
                   </span>
-                  {statusBadge(doc.status)}
+                  {statusBadge("published")}
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  Last updated: {doc.lastUpdated} •{" "}
-                  {doc.wordCount.toLocaleString()} words
-                </p>
               </div>
               <Button
                 type="button"
@@ -186,5 +198,5 @@ export function LegalDocumentsContent() {
         onSave={handleSave}
       />
     </div>
-  )
+  );
 }
